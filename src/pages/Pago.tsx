@@ -83,7 +83,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useSocket } from '../hooks/useSocket';
 
 // Backend API base (sin proxy de Vite)
-const API_BASE = (import.meta as any).env?.VITE_API_URL ? `${(import.meta as any).env.VITE_API_URL}/api` : 'http://localhost:3000/api';
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000/api';
 
 type CacheBucket = 'cupos' | 'tiposCursos';
 
@@ -1793,21 +1793,34 @@ Realiza una nueva transferencia o verifica si ya tienes una solicitud previa reg
             }
           }
 
-          /* SUPER RESPONSIVE STYLES - ULTRA AGRESIVO */
+          /* ========================================
+             ESTILOS RESPONSIVOS MEJORADOS
+             ======================================== */
           
-          /* Tablet y móvil grande */
+          /* Tablet grande y escritorio pequeño */
+          @media (max-width: 1200px) {
+            .payment-grid {
+              gap: 40px !important;
+            }
+          }
+          
+          /* Tablet */
           @media (max-width: 1024px) {
             .payment-grid {
               grid-template-columns: 1fr !important;
-              gap: 24px !important;
+              gap: 32px !important;
+            }
+            
+            .payment-title {
+              font-size: 2.5rem !important;
             }
           }
 
-          /* Móvil y tablet pequeño */
+          /* Tablet pequeño y móvil grande */
           @media (max-width: 768px) {
             /* CONTENEDOR PRINCIPAL */
             .payment-container {
-              padding: 0 12px !important;
+              padding: 0 16px !important;
               max-width: 100% !important;
             }
             
@@ -1815,24 +1828,32 @@ Realiza una nueva transferencia o verifica si ya tienes una solicitud previa reg
             .payment-grid {
               display: flex !important;
               flex-direction: column !important;
-              gap: 16px !important;
+              gap: 24px !important;
               width: 100% !important;
             }
             
             /* TÍTULO PRINCIPAL */
             .payment-title {
-              font-size: 1.8rem !important;
+              font-size: 2rem !important;
               text-align: center !important;
-              margin-bottom: 16px !important;
-              padding: 0 8px !important;
+              margin-bottom: 20px !important;
+              padding: 0 12px !important;
+              line-height: 1.3 !important;
             }
             
-            /* CARD DEL CURSO - COMPLETAMENTE RESPONSIVA */
+            /* BOTÓN VOLVER */
+            .payment-container > button:first-of-type {
+              margin: 16px auto 24px auto !important;
+              width: auto !important;
+              max-width: 90% !important;
+            }
+            
+            /* CARD DEL CURSO */
             .curso-card {
               width: 100% !important;
               max-width: 100% !important;
-              padding: 16px 12px !important;
-              margin-bottom: 16px !important;
+              padding: 20px 16px !important;
+              margin-bottom: 20px !important;
               box-sizing: border-box !important;
             }
             
@@ -1841,23 +1862,49 @@ Realiza una nueva transferencia o verifica si ya tienes una solicitud previa reg
               flex-direction: column !important;
               align-items: center !important;
               text-align: center !important;
-              gap: 12px !important;
+              gap: 16px !important;
+            }
+            
+            .curso-card h3 {
+              font-size: 1.3rem !important;
+              text-align: center !important;
             }
             
             .curso-image {
-              width: 70px !important;
-              height: 70px !important;
-              margin: 0 auto 8px auto !important;
+              width: 80px !important;
+              height: 80px !important;
+              margin: 0 auto 12px auto !important;
             }
             
             .curso-price {
-              font-size: 1.4rem !important;
-              margin-top: 8px !important;
+              font-size: 1.6rem !important;
+              margin-top: 12px !important;
               text-align: center !important;
+            }
+            
+            /* BADGES DE CUPOS */
+            .curso-card > div:first-child > div > div:last-child {
+              flex-direction: column !important;
+              align-items: center !important;
+              gap: 8px !important;
+            }
+            
+            .curso-card > div:first-child > div > div:last-child > div {
+              width: 100% !important;
+              max-width: 280px !important;
+              justify-content: center !important;
             }
             
             /* SECCIONES DEL FORMULARIO */
             .form-section {
+              width: 100% !important;
+              max-width: 100% !important;
+              padding: 20px 16px !important;
+              margin-bottom: 20px !important;
+              box-sizing: border-box !important;
+            }
+            
+            .modalidad-info {
               width: 100% !important;
               max-width: 100% !important;
               padding: 16px 12px !important;
@@ -1865,38 +1912,32 @@ Realiza una nueva transferencia o verifica si ya tienes una solicitud previa reg
               box-sizing: border-box !important;
             }
             
-            .modalidad-info {
-              width: 100% !important;
-              max-width: 100% !important;
-              padding: 12px 8px !important;
-              margin-bottom: 12px !important;
-              box-sizing: border-box !important;
-            }
-            
-            /* FORMULARIO - ULTRA RESPONSIVO */
+            /* FORMULARIO - FILAS A COLUMNAS */
             .form-row {
               display: flex !important;
               flex-direction: column !important;
-              gap: 12px !important;
+              gap: 16px !important;
               width: 100% !important;
+              grid-template-columns: 1fr !important;
             }
             
+            /* TABS DE DOCUMENTO */
             .document-tabs {
-              display: flex !important;
-              flex-direction: column !important;
-              gap: 8px !important;
+              display: grid !important;
+              grid-template-columns: 1fr !important;
+              gap: 10px !important;
               width: 100% !important;
             }
             
             .document-tab {
               width: 100% !important;
-              padding: 12px 16px !important;
-              font-size: 0.9rem !important;
+              padding: 14px 16px !important;
+              font-size: 0.95rem !important;
               text-align: center !important;
               box-sizing: border-box !important;
             }
             
-            /* INPUTS - ULTRA RESPONSIVOS */
+            /* INPUTS Y CONTROLES */
             .form-input, 
             input, 
             select, 
@@ -1909,14 +1950,14 @@ Realiza una nueva transferencia o verifica si ya tienes una solicitud previa reg
               width: 100% !important;
               max-width: 100% !important;
               font-size: 16px !important;
-              padding: 12px 14px !important;
+              padding: 14px 16px !important;
               box-sizing: border-box !important;
               margin: 0 !important;
             }
             
             .form-label {
-              font-size: 0.9rem !important;
-              margin-bottom: 6px !important;
+              font-size: 0.95rem !important;
+              margin-bottom: 8px !important;
               display: block !important;
             }
             
@@ -1924,21 +1965,59 @@ Realiza una nueva transferencia o verifica si ya tienes una solicitud previa reg
             .payment-methods {
               display: flex !important;
               flex-direction: column !important;
-              gap: 10px !important;
+              gap: 12px !important;
               width: 100% !important;
             }
             
             .payment-method-card {
               width: 100% !important;
-              padding: 14px 10px !important;
+              padding: 16px 12px !important;
               box-sizing: border-box !important;
             }
             
-            /* UPLOAD AREA */
+            .payment-method-card > div:first-child {
+              flex-direction: row !important;
+              align-items: center !important;
+              justify-content: flex-start !important;
+            }
+            
+            /* ========================================
+               DATOS DEL COMPROBANTE - RESPONSIVO
+               ======================================== */
+            
+            /* Contenedor de datos bancarios con QR */
+            .payment-container div[style*="display: flex"][style*="gap: 24px"] {
+              flex-direction: column !important;
+              gap: 16px !important;
+            }
+            
+            /* QR Code en móvil */
+            .payment-container div[style*="width: 220px"][style*="height: 220px"] {
+              width: 100% !important;
+              max-width: 200px !important;
+              height: 200px !important;
+              margin: 0 auto !important;
+            }
+            
+            /* Grid de Banco y Fecha - FORZAR COLUMNA */
+            .payment-container div[style*="gridTemplateColumns: '1fr 1fr'"] {
+              display: flex !important;
+              flex-direction: column !important;
+              gap: 16px !important;
+              grid-template-columns: 1fr !important;
+            }
+            
+            /* Asegurar que los divs hijos también sean responsivos */
+            .payment-container div[style*="gridTemplateColumns: '1fr 1fr'"] > div {
+              width: 100% !important;
+              max-width: 100% !important;
+            }
+            
+            /* ÁREA DE CARGA */
             .upload-area {
               width: 100% !important;
-              padding: 16px 8px !important;
-              min-height: 80px !important;
+              padding: 20px 12px !important;
+              min-height: 100px !important;
               box-sizing: border-box !important;
             }
             
@@ -1946,100 +2025,39 @@ Realiza una nueva transferencia o verifica si ya tienes una solicitud previa reg
             .submit-button {
               width: 100% !important;
               max-width: 100% !important;
-              padding: 14px 16px !important;
-              font-size: 1rem !important;
+              padding: 16px 20px !important;
+              font-size: 1.05rem !important;
               box-sizing: border-box !important;
             }
             
-            /* TÍTULOS Y TEXTO */
+            /* TÍTULOS DE SECCIÓN */
             .section-title {
-              font-size: 1.1rem !important;
-              text-align: center !important;
+              font-size: 1.2rem !important;
+              text-align: left !important;
             }
             
             .modalidad-title {
-              font-size: 0.9rem !important;
-            }
-            
-            .modalidad-list {
-              font-size: 0.8rem !important;
-              padding-left: 16px !important;
-            }
-            
-            /* FORZAR ANCHO COMPLETO A TODOS LOS ELEMENTOS */
-            div, section, form, fieldset {
-              max-width: 100% !important;
-              box-sizing: border-box !important;
-            }
-          }
-
-          /* MÓVIL PEQUEÑO - ULTRA OPTIMIZADO */
-          @media (max-width: 480px) {
-            .payment-container {
-              padding: 0 8px !important;
-            }
-            
-            .payment-title {
-              font-size: 1.6rem !important;
-              padding: 0 4px !important;
-            }
-            
-            .curso-card {
-              padding: 12px 8px !important;
-            }
-            
-            .form-section {
-              padding: 12px 8px !important;
-              margin-bottom: 12px !important;
-            }
-            
-            .modalidad-info {
-              padding: 8px 6px !important;
-            }
-            
-            .payment-method-card {
-              padding: 10px 6px !important;
-            }
-            
-            .form-input, 
-            input, 
-            select, 
-            textarea {
-              padding: 10px 12px !important;
-              font-size: 16px !important;
-            }
-            
-            .upload-area {
-              padding: 12px 6px !important;
-              min-height: 60px !important;
-            }
-            
-            .submit-button {
-              padding: 12px 14px !important;
               font-size: 0.95rem !important;
             }
             
-            .section-title {
-              font-size: 1rem !important;
-            }
-            
-            .modalidad-title {
-              font-size: 0.85rem !important;
-            }
-            
             .modalidad-list {
-              font-size: 0.75rem !important;
+              font-size: 0.85rem !important;
+              padding-left: 20px !important;
+              line-height: 1.7 !important;
             }
-          }
-          
-          /* REGLAS ESPECÍFICAS PARA PÁGINA DE PAGOS */
-          @media (max-width: 768px) {
-            /* Solo aplicar box-sizing a elementos dentro del contenedor de pagos */
+            
+            /* ALERTAS Y NOTIFICACIONES */
+            .payment-container > div > div > div[style*="slideInUp"] {
+              padding: 20px 16px !important;
+              margin-bottom: 24px !important;
+            }
+            
+            /* BOX-SIZING GLOBAL PARA PAYMENT */
             .payment-container * {
               box-sizing: border-box !important;
             }
             
-            /* Forzar que todos los contenedores principales sean responsivos */
+            /* CONTENEDORES PRINCIPALES */
             .payment-container,
             .payment-container > *,
             .payment-grid,
@@ -2049,17 +2067,7 @@ Realiza una nueva transferencia o verifica si ya tienes una solicitud previa reg
               box-sizing: border-box !important;
             }
             
-            /* Reglas específicas para elementos problemáticos SOLO en payment-container */
-            .payment-container div[style*="gridTemplateColumns"] {
-              grid-template-columns: 1fr !important;
-            }
-            
-            .payment-container div[style*="display: flex"][style*="alignItems: center"] {
-              flex-direction: column !important;
-              align-items: center !important;
-            }
-            
-            /* Asegurar que los textos no se salgan SOLO en payment-container */
+            /* TEXTOS - PREVENIR OVERFLOW */
             .payment-container h1, 
             .payment-container h2, 
             .payment-container h3, 
@@ -2074,16 +2082,133 @@ Realiza una nueva transferencia o verifica si ya tienes una solicitud previa reg
               max-width: 100% !important;
             }
             
-            /* Forzar que los botones sean responsivos SOLO en payment-container */
+            /* BOTONES RESPONSIVOS */
             .payment-container button {
               max-width: 100% !important;
               box-sizing: border-box !important;
             }
             
-            /* Asegurar que las imágenes sean responsivas SOLO en payment-container */
+            /* IMÁGENES RESPONSIVAS */
             .payment-container img {
               max-width: 100% !important;
               height: auto !important;
+            }
+          }
+
+          /* MÓVIL PEQUEÑO */
+          @media (max-width: 480px) {
+            .payment-container {
+              padding: 0 12px !important;
+            }
+            
+            .payment-title {
+              font-size: 1.75rem !important;
+              padding: 0 8px !important;
+            }
+            
+            .curso-card {
+              padding: 16px 12px !important;
+            }
+            
+            .curso-card h3 {
+              font-size: 1.2rem !important;
+            }
+            
+            .curso-image {
+              width: 70px !important;
+              height: 70px !important;
+            }
+            
+            .curso-price {
+              font-size: 1.5rem !important;
+            }
+            
+            .form-section {
+              padding: 16px 12px !important;
+              margin-bottom: 16px !important;
+            }
+            
+            .modalidad-info {
+              padding: 12px 10px !important;
+            }
+            
+            .payment-method-card {
+              padding: 12px 10px !important;
+            }
+            
+            .form-input, 
+            input, 
+            select, 
+            textarea {
+              padding: 12px 14px !important;
+              font-size: 16px !important;
+            }
+            
+            .upload-area {
+              padding: 16px 10px !important;
+              min-height: 80px !important;
+            }
+            
+            .submit-button {
+              padding: 14px 16px !important;
+              font-size: 1rem !important;
+            }
+            
+            .section-title {
+              font-size: 1.1rem !important;
+            }
+            
+            .modalidad-title {
+              font-size: 0.9rem !important;
+            }
+            
+            .modalidad-list {
+              font-size: 0.8rem !important;
+              line-height: 1.6 !important;
+            }
+            
+            .document-tab {
+              padding: 12px 14px !important;
+              font-size: 0.9rem !important;
+            }
+          }
+          
+          /* MÓVIL MUY PEQUEÑO */
+          @media (max-width: 360px) {
+            .payment-container {
+              padding: 0 10px !important;
+            }
+            
+            .payment-title {
+              font-size: 1.6rem !important;
+            }
+            
+            .curso-card {
+              padding: 14px 10px !important;
+            }
+            
+            .form-section {
+              padding: 14px 10px !important;
+            }
+            
+            .modalidad-info {
+              padding: 10px 8px !important;
+            }
+            
+            .payment-method-card {
+              padding: 10px 8px !important;
+            }
+            
+            .form-input, 
+            input, 
+            select, 
+            textarea {
+              padding: 11px 12px !important;
+            }
+            
+            .submit-button {
+              padding: 13px 14px !important;
+              font-size: 0.95rem !important;
             }
           }
         `}
