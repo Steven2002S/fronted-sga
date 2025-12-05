@@ -68,7 +68,7 @@ const PanelAdministrativos = () => {
       console.log('Token para obtener datos:', token ? 'Existe' : 'No existe');
       if (!token) return;
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/auth/me`, {
+      const response = await fetch(`${(import.meta.env.VITE_API_URL || 'http://localhost:3000')}/api/auth/me`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 

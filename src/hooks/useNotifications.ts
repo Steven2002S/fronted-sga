@@ -51,7 +51,7 @@ export const useNotifications = (rol: RolUsuario) => {
       }
 
       console.log('useNotifications: Obteniendo notificaciones del servidor...');
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/notificaciones/mis-notificaciones`, {
+      const response = await fetch(`${(import.meta.env.VITE_API_URL || 'http://localhost:3000')}/api/notificaciones/mis-notificaciones`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -124,7 +124,7 @@ export const useNotifications = (rol: RolUsuario) => {
     try {
       const token = sessionStorage.getItem('auth_token');
       if (token) {
-        await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/notificaciones/marcar-todas-leidas`, {
+        await fetch(`${(import.meta.env.VITE_API_URL || 'http://localhost:3000')}/api/notificaciones/marcar-todas-leidas`, {
           method: 'PUT',
           headers: { 'Authorization': `Bearer ${token}` }
         });

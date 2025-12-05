@@ -151,7 +151,7 @@ const HistorialAuditoria: React.FC = () => {
       if (filtros.usuario_id) params.append('usuario_id', filtros.usuario_id);
 
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/auditoria/historial-completo?${params}`,
+        `${(import.meta.env.VITE_API_URL || 'http://localhost:3000')}/api/auditoria/historial-completo?${params}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

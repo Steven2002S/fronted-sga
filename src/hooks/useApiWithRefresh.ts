@@ -31,7 +31,7 @@ interface UseApiWithRefreshReturn {
  */
 export const useApiWithRefresh = ({
   onRefresh,
-  baseUrl = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3000/api'
+  baseUrl = (import.meta as any).env?.VITE_API_URL ? `${(import.meta as any).env.VITE_API_URL}/api` : 'http://localhost:3000/api'
 }: UseApiWithRefreshOptions = {}): UseApiWithRefreshReturn => {
   const [loading, setLoading] = useState(false);
   const [showLoadingModal, setShowLoadingModal] = useState(false);
