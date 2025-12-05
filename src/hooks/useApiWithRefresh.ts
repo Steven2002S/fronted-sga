@@ -31,7 +31,7 @@ interface UseApiWithRefreshReturn {
  */
 export const useApiWithRefresh = ({
   onRefresh,
-  baseUrl = 'http://localhost:3000/api'
+  baseUrl = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3000/api'
 }: UseApiWithRefreshOptions = {}): UseApiWithRefreshReturn => {
   const [loading, setLoading] = useState(false);
   const [showLoadingModal, setShowLoadingModal] = useState(false);
@@ -68,7 +68,7 @@ export const useApiWithRefresh = ({
     try {
       // Obtener token de autenticación
       const token = sessionStorage.getItem('auth_token');
-      
+
       // Preparar headers
       const requestHeaders: Record<string, string> = {
         'Authorization': token ? `Bearer ${token}` : '',
@@ -126,7 +126,7 @@ export const useApiWithRefresh = ({
 
       const errorMessage = err.message || 'Error en la petición';
       setError(errorMessage);
-      
+
       if (showErrorToast) {
         toast.error(errorMessage);
       }
@@ -167,43 +167,43 @@ export const useCrudOperations = <T = any>(
   return {
     ...api,
     // GET - Obtener todos
-    getAll: useCallback(() => 
-      api.fetchData<T[]>(endpoint, { method: 'GET', autoRefresh: false }), 
+    getAll: useCallback(() =>
+      api.fetchData<T[]>(endpoint, { method: 'GET', autoRefresh: false }),
       [api, endpoint]
     ),
-    
+
     // GET - Obtener uno por ID
-    getById: useCallback((id: number | string) => 
-      api.fetchData<T>(`${endpoint}/${id}`, { method: 'GET', autoRefresh: false }), 
+    getById: useCallback((id: number | string) =>
+      api.fetchData<T>(`${endpoint}/${id}`, { method: 'GET', autoRefresh: false }),
       [api, endpoint]
     ),
-    
+
     // POST - Crear
-    create: useCallback((data: Partial<T>, successMessage?: string) => 
-      api.fetchData<T>(endpoint, { 
-        method: 'POST', 
+    create: useCallback((data: Partial<T>, successMessage?: string) =>
+      api.fetchData<T>(endpoint, {
+        method: 'POST',
         body: data,
         successMessage: successMessage || 'Registro creado correctamente'
-      }), 
+      }),
       [api, endpoint]
     ),
-    
+
     // PUT - Actualizar
-    update: useCallback((id: number | string, data: Partial<T>, successMessage?: string) => 
-      api.fetchData<T>(`${endpoint}/${id}`, { 
-        method: 'PUT', 
+    update: useCallback((id: number | string, data: Partial<T>, successMessage?: string) =>
+      api.fetchData<T>(`${endpoint}/${id}`, {
+        method: 'PUT',
         body: data,
         successMessage: successMessage || 'Registro actualizado correctamente'
-      }), 
+      }),
       [api, endpoint]
     ),
-    
+
     // DELETE - Eliminar
-    remove: useCallback((id: number | string, successMessage?: string) => 
-      api.fetchData<void>(`${endpoint}/${id}`, { 
+    remove: useCallback((id: number | string, successMessage?: string) =>
+      api.fetchData<void>(`${endpoint}/${id}`, {
         method: 'DELETE',
         successMessage: successMessage || 'Registro eliminado correctamente'
-      }), 
+      }),
       [api, endpoint]
     )
   };
