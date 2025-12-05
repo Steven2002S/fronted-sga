@@ -12,7 +12,7 @@ import {
 import { showToast } from '../../config/toastConfig';
 import { useSocket } from "../../hooks/useSocket";
 
-const API_BASE = "http://localhost:3000/api";
+const API_BASE = (import.meta as any).env?.VITE_API_URL ? `${(import.meta as any).env.VITE_API_URL}/api` : 'http://localhost:3000/api';
 
 interface Curso {
   id_curso: number;

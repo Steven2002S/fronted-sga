@@ -70,7 +70,7 @@ interface UserData {
   rol: string;
 }
 
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = (import.meta as any).env?.VITE_API_URL ? `${(import.meta as any).env.VITE_API_URL}/api` : 'http://localhost:3000/api';
 
 const MiAula: React.FC<MiAulaProps> = ({ darkMode, onNavigate }) => {
   const navigate = useNavigate();

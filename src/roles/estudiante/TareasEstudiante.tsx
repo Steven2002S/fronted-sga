@@ -11,7 +11,7 @@ import { showToast } from '../../config/toastConfig';
 // import { useBreakpoints } from '../../hooks/useMediaQuery';
 import '../../styles/responsive.css';
 
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = (import.meta as any).env?.VITE_API_URL ? `${(import.meta as any).env.VITE_API_URL}/api` : 'http://localhost:3000/api';
 
 interface Tarea {
   id_tarea: number;

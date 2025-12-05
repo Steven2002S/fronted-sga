@@ -12,7 +12,7 @@ import '../../utils/modalScrollHelper';
 
 type CSSPropertiesWithVars = CSSProperties & Record<string, string | number>;
 
-const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3000/api';
+const API_BASE = (import.meta as any).env?.VITE_API_URL ? `${(import.meta as any).env.VITE_API_URL}/api` : 'http://localhost:3000/api';
 
 interface Usuario {
   id_usuario: number;

@@ -34,7 +34,7 @@ const Dashboard = () => {
   const [actividadReciente, setActividadReciente] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showLoadingModal, setShowLoadingModal] = useState(false);
-  const API_BASE = 'http://localhost:3000/api';
+  const API_BASE = (import.meta as any).env?.VITE_API_URL ? `${(import.meta as any).env.VITE_API_URL}/api` : 'http://localhost:3000/api';
 
   useEffect(() => {
     const syncDarkMode = () => {
@@ -239,50 +239,50 @@ const Dashboard = () => {
           const trendColor = percentage >= 0 ? '#22c55e' : '#ef4444';
           const formattedPercentage = loading ? '...' : `${percentage >= 0 ? '+' : ''}${percentage}%`;
           return (
-          <div
-            key={key}
-            style={{
-              background: theme.statCardBg,
-              border: `0.0625rem solid ${theme.statCardBorder}`,
-              borderRadius: '0.75em',
-              padding: '0.625em',
-              transition: 'all 0.2s ease',
-              display: 'flex',
-              flexDirection: 'column',
-              boxShadow: darkMode ? '0 12px 24px rgba(0,0,0,0.25)' : '0 10px 20px rgba(239,68,68,0.08)'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5em', marginBottom: '0.5em' }}>
-              <div style={{
-                background: theme.statIconBg(accentRgb),
-                border: theme.statIconBorder(accentRgb),
-                borderRadius: '0.5em',
-                padding: '0.35em',
-                width: isMobile ? '2.1rem' : '2.25rem',
-                height: isMobile ? '2.1rem' : '2.25rem',
+            <div
+              key={key}
+              style={{
+                background: theme.statCardBg,
+                border: `0.0625rem solid ${theme.statCardBorder}`,
+                borderRadius: '0.75em',
+                padding: '0.625em',
+                transition: 'all 0.2s ease',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-              }}>
-                <Icon size={14} color={iconColor} strokeWidth={2.25} />
+                flexDirection: 'column',
+                boxShadow: darkMode ? '0 12px 24px rgba(0,0,0,0.25)' : '0 10px 20px rgba(239,68,68,0.08)'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5em', marginBottom: '0.5em' }}>
+                <div style={{
+                  background: theme.statIconBg(accentRgb),
+                  border: theme.statIconBorder(accentRgb),
+                  borderRadius: '0.5em',
+                  padding: '0.35em',
+                  width: isMobile ? '2.1rem' : '2.25rem',
+                  height: isMobile ? '2.1rem' : '2.25rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <Icon size={14} color={iconColor} strokeWidth={2.25} />
+                </div>
+                <h3 style={{ color: theme.textPrimary, margin: 0, fontSize: '0.75rem', fontWeight: 600 }}>{title}</h3>
               </div>
-              <h3 style={{ color: theme.textPrimary, margin: 0, fontSize: '0.75rem', fontWeight: 600 }}>{title}</h3>
-            </div>
-            <p style={{ color: theme.valueText, fontSize: '1.5rem', fontWeight: '700', margin: '0 0 0.375em 0', lineHeight: '1', letterSpacing: '-0.02em' }}>
-              {loading ? '...' : value.toLocaleString()}
-            </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25em' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.2em' }}>
-                <TrendingUp size={10} color={trendColor} strokeWidth={2} />
-                <span style={{ color: trendColor, fontSize: '0.7rem', fontWeight: '700' }}>
-                  {formattedPercentage}
-                </span>
+              <p style={{ color: theme.valueText, fontSize: '1.5rem', fontWeight: '700', margin: '0 0 0.375em 0', lineHeight: '1', letterSpacing: '-0.02em' }}>
+                {loading ? '...' : value.toLocaleString()}
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25em' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.2em' }}>
+                  <TrendingUp size={10} color={trendColor} strokeWidth={2} />
+                  <span style={{ color: trendColor, fontSize: '0.7rem', fontWeight: '700' }}>
+                    {formattedPercentage}
+                  </span>
+                </div>
+                <span style={{ color: theme.textMuted, fontSize: '0.7rem', fontWeight: '500' }}>vs mes anterior</span>
               </div>
-              <span style={{ color: theme.textMuted, fontSize: '0.7rem', fontWeight: '500' }}>vs mes anterior</span>
             </div>
-          </div>
-        );
+          );
         })}
       </div>
 

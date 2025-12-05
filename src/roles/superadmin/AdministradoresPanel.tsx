@@ -103,7 +103,7 @@ const AdministradoresPanel: React.FC = () => {
   const [showPwdConfirm, setShowPwdConfirm] = useState(false);
   const [cedulaError, setCedulaError] = useState<string | null>(null);
 
-  const API_BASE = 'http://localhost:3000/api';
+  const API_BASE = (import.meta as any).env?.VITE_API_URL ? `${(import.meta as any).env.VITE_API_URL}/api` : 'http://localhost:3000/api';
 
   // Sincronizar darkMode
   useEffect(() => {
@@ -404,7 +404,7 @@ const AdministradoresPanel: React.FC = () => {
             : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.95) 100%)',
           borderRadius: isMobile ? '0' : '12px',
           width: '100%', maxWidth: isMobile ? '100%' : '800px',
-          maxHeight: isMobile ? '100vh' : '85vh', 
+          maxHeight: isMobile ? '100vh' : '85vh',
           minHeight: isMobile ? '100vh' : 'auto',
           overflowY: 'auto',
           boxShadow: '0 20px 60px -12px rgba(0, 0, 0, 0.5)',
@@ -413,7 +413,7 @@ const AdministradoresPanel: React.FC = () => {
           flexDirection: 'column'
         }}>
           <div style={{
-            padding: isMobile ? '1rem' : '1rem 1.5rem', 
+            padding: isMobile ? '1rem' : '1rem 1.5rem',
             borderBottom: '1px solid rgba(239, 68, 68, 0.2)',
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
             position: isMobile ? 'sticky' : 'relative',
@@ -437,12 +437,12 @@ const AdministradoresPanel: React.FC = () => {
           </div>
           <div style={{ padding: isMobile ? '1rem' : '1rem 1.5rem', flex: 1 }}>{content}</div>
           <div style={{
-            padding: isMobile ? '1rem' : '1.25rem 1.5rem', 
+            padding: isMobile ? '1rem' : '1.25rem 1.5rem',
             borderTop: `1px solid ${darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
-            display: 'flex', 
+            display: 'flex',
             flexDirection: isMobile ? 'column' : 'row',
-            justifyContent: 'flex-end', 
-            gap: isMobile ? '0.75rem' : '1rem', 
+            justifyContent: 'flex-end',
+            gap: isMobile ? '0.75rem' : '1rem',
             background: darkMode
               ? 'linear-gradient(135deg, rgba(0,0,0,0.95) 0%, rgba(26,26,46,0.95) 100%)'
               : 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(248,250,252,0.98) 100%)',
@@ -468,16 +468,16 @@ const AdministradoresPanel: React.FC = () => {
 
       {/* Controles */}
       <GlassEffect variant="card" tint="neutral" intensity="light" style={{ marginBottom: isMobile ? '12px' : '1rem' }}>
-        <div className="responsive-filters" style={{ 
-          display: 'flex', 
-          flexDirection: isMobile ? 'column' : 'row', 
+        <div className="responsive-filters" style={{
+          display: 'flex',
+          flexDirection: isMobile ? 'column' : 'row',
           gap: '0.75rem',
           alignItems: isMobile ? 'stretch' : 'center'
         }}>
           {/* Búsqueda y filtro */}
-          <div style={{ 
-            display: 'flex', 
-            flexDirection: isSmallScreen ? 'column' : 'row', 
+          <div style={{
+            display: 'flex',
+            flexDirection: isSmallScreen ? 'column' : 'row',
             gap: '0.75rem',
             flex: 1
           }}>
@@ -513,22 +513,22 @@ const AdministradoresPanel: React.FC = () => {
           </div>
 
           {/* Toggle de vista */}
-          <div style={{ 
-            display: 'flex', 
-            background: themeColors.toggleGroupBg, 
-            borderRadius: '0.65rem', 
+          <div style={{
+            display: 'flex',
+            background: themeColors.toggleGroupBg,
+            borderRadius: '0.65rem',
             padding: '0.25rem',
             gap: '0.25rem'
           }}>
-            <button 
-              onClick={() => setViewMode('cards')} 
-              style={{ 
+            <button
+              onClick={() => setViewMode('cards')}
+              style={{
                 flex: isMobile ? 1 : 'none',
-                padding: isMobile ? '0.75em 1em' : '0.45em 0.8em', 
-                background: viewMode === 'cards' ? themeColors.toggleActiveBg : 'transparent', 
-                border: 'none', 
-                borderRadius: '0.5em', 
-                color: viewMode === 'cards' ? themeColors.toggleActiveText : themeColors.toggleInactiveText, 
+                padding: isMobile ? '0.75em 1em' : '0.45em 0.8em',
+                background: viewMode === 'cards' ? themeColors.toggleActiveBg : 'transparent',
+                border: 'none',
+                borderRadius: '0.5em',
+                color: viewMode === 'cards' ? themeColors.toggleActiveText : themeColors.toggleInactiveText,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -542,15 +542,15 @@ const AdministradoresPanel: React.FC = () => {
               <Grid size={isMobile ? 18 : 16} />
               {isMobile && <span>Tarjetas</span>}
             </button>
-            <button 
-              onClick={() => setViewMode('table')} 
-              style={{ 
+            <button
+              onClick={() => setViewMode('table')}
+              style={{
                 flex: isMobile ? 1 : 'none',
-                padding: isMobile ? '0.75em 1em' : '0.45em 0.8em', 
-                background: viewMode === 'table' ? themeColors.toggleActiveBg : 'transparent', 
-                border: 'none', 
-                borderRadius: '0.5em', 
-                color: viewMode === 'table' ? themeColors.toggleActiveText : themeColors.toggleInactiveText, 
+                padding: isMobile ? '0.75em 1em' : '0.45em 0.8em',
+                background: viewMode === 'table' ? themeColors.toggleActiveBg : 'transparent',
+                border: 'none',
+                borderRadius: '0.5em',
+                color: viewMode === 'table' ? themeColors.toggleActiveText : themeColors.toggleInactiveText,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -576,16 +576,16 @@ const AdministradoresPanel: React.FC = () => {
               });
               setShowCreateModal(true);
             }} style={{
-              padding: isMobile ? '0.75em 1em' : '0.75em 1.5em', 
+              padding: isMobile ? '0.75em 1em' : '0.75em 1.5em',
               background: primaryActionButtonStyles.base,
-              border: 'none', 
-              borderRadius: '0.625em', 
-              color: '#fff', 
+              border: 'none',
+              borderRadius: '0.625em',
+              color: '#fff',
               fontWeight: 600,
-              cursor: 'pointer', 
+              cursor: 'pointer',
               boxShadow: primaryActionButtonStyles.shadow,
-              display: 'flex', 
-              alignItems: 'center', 
+              display: 'flex',
+              alignItems: 'center',
               justifyContent: 'center',
               gap: '0.5em',
               fontSize: isMobile ? '0.9rem' : '1rem',
@@ -697,8 +697,8 @@ const AdministradoresPanel: React.FC = () => {
           overflowX: 'auto',
           WebkitOverflowScrolling: 'touch'
         }}>
-          <table style={{ 
-            width: '100%', 
+          <table style={{
+            width: '100%',
             borderCollapse: 'collapse',
             minWidth: '800px'
           }}>
@@ -921,25 +921,25 @@ const AdministradoresPanel: React.FC = () => {
               fecha_nacimiento: '', direccion: '', genero: '', password: '', confirmPassword: '',
               rolId: '', permisos: []
             });
-          }} style={{ 
-            padding: '0.75rem 1.5rem', 
-            borderRadius: '0.5rem', 
-            border: 'none', 
-            background: darkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', 
-            color: themeColors.textSecondary, 
+          }} style={{
+            padding: '0.75rem 1.5rem',
+            borderRadius: '0.5rem',
+            border: 'none',
+            background: darkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+            color: themeColors.textSecondary,
             cursor: 'pointer',
             width: isMobile ? '100%' : 'auto'
           }}>Cancelar</button>
-          <button onClick={handleCreate} style={{ 
-            padding: '0.75rem 1.5rem', 
-            borderRadius: '0.5rem', 
-            border: 'none', 
-            background: primaryActionButtonStyles.base, 
-            color: '#fff', 
-            fontWeight: 600, 
-            cursor: 'pointer', 
-            display: 'flex', 
-            alignItems: 'center', 
+          <button onClick={handleCreate} style={{
+            padding: '0.75rem 1.5rem',
+            borderRadius: '0.5rem',
+            border: 'none',
+            background: primaryActionButtonStyles.base,
+            color: '#fff',
+            fontWeight: 600,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
             justifyContent: 'center',
             gap: '0.5rem',
             width: isMobile ? '100%' : 'auto'
@@ -1051,25 +1051,25 @@ const AdministradoresPanel: React.FC = () => {
         </div>
       </div>,
         <>
-          <button onClick={() => setShowEditModal(false)} style={{ 
-            padding: '0.75rem 1.5rem', 
-            borderRadius: '0.5rem', 
-            border: 'none', 
-            background: darkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', 
-            color: themeColors.textSecondary, 
+          <button onClick={() => setShowEditModal(false)} style={{
+            padding: '0.75rem 1.5rem',
+            borderRadius: '0.5rem',
+            border: 'none',
+            background: darkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+            color: themeColors.textSecondary,
             cursor: 'pointer',
             width: isMobile ? '100%' : 'auto'
           }}>Cancelar</button>
-          <button onClick={handleUpdate} style={{ 
-            padding: '0.75rem 1.5rem', 
-            borderRadius: '0.5rem', 
-            border: 'none', 
-            background: primaryActionButtonStyles.base, 
-            color: '#fff', 
-            fontWeight: 600, 
-            cursor: 'pointer', 
-            display: 'flex', 
-            alignItems: 'center', 
+          <button onClick={handleUpdate} style={{
+            padding: '0.75rem 1.5rem',
+            borderRadius: '0.5rem',
+            border: 'none',
+            background: primaryActionButtonStyles.base,
+            color: '#fff',
+            fontWeight: 600,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
             justifyContent: 'center',
             gap: '0.5rem',
             width: isMobile ? '100%' : 'auto'
@@ -1097,25 +1097,25 @@ const AdministradoresPanel: React.FC = () => {
           </div>
         </div>,
         <>
-          <button onClick={() => setShowPasswordModal(false)} style={{ 
-            padding: '0.75rem 1.5rem', 
-            borderRadius: '0.5rem', 
-            border: 'none', 
-            background: darkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', 
-            color: themeColors.textSecondary, 
+          <button onClick={() => setShowPasswordModal(false)} style={{
+            padding: '0.75rem 1.5rem',
+            borderRadius: '0.5rem',
+            border: 'none',
+            background: darkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+            color: themeColors.textSecondary,
             cursor: 'pointer',
             width: isMobile ? '100%' : 'auto'
           }}>Cancelar</button>
-          <button onClick={handleChangePassword} style={{ 
-            padding: '0.75rem 1.5rem', 
-            borderRadius: '0.5rem', 
-            border: 'none', 
-            background: primaryActionButtonStyles.base, 
-            color: '#fff', 
-            fontWeight: 600, 
-            cursor: 'pointer', 
-            display: 'flex', 
-            alignItems: 'center', 
+          <button onClick={handleChangePassword} style={{
+            padding: '0.75rem 1.5rem',
+            borderRadius: '0.5rem',
+            border: 'none',
+            background: primaryActionButtonStyles.base,
+            color: '#fff',
+            fontWeight: 600,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
             justifyContent: 'center',
             gap: '0.5rem',
             width: isMobile ? '100%' : 'auto'

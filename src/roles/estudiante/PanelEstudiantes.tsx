@@ -21,7 +21,7 @@ import DetalleCursoEstudiante from './DetalleCursoEstudiante';
 import MiHorario from './MiHorario';
 import HistorialAcademico from './HistorialAcademico';
 
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = (import.meta as any).env?.VITE_API_URL ? `${(import.meta as any).env.VITE_API_URL}/api` : 'http://localhost:3000/api';
 
 const PanelEstudiantes = () => {
   const navigate = useNavigate();
@@ -53,7 +53,7 @@ const PanelEstudiantes = () => {
   } | null>(null);
 
   // Hook de notificaciones con WebSocket
-  const { 
+  const {
     notificaciones,
     marcarTodasLeidas
   } = useNotifications('estudiante');
@@ -442,9 +442,9 @@ const PanelEstudiantes = () => {
             )}
 
             {/* Información del módulo activo */}
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
               gap: isMobile ? '0.625em' : '1em',
               flex: 1,
               minWidth: 0
@@ -497,10 +497,10 @@ const PanelEstudiantes = () => {
             </div>
 
             {/* Iconos del lado derecho */}
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: isMobile ? '0.5em' : '0.75em', 
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: isMobile ? '0.5em' : '0.75em',
               position: 'relative',
               flexShrink: 0
             }}>
@@ -511,7 +511,7 @@ const PanelEstudiantes = () => {
                 darkMode={darkMode}
                 bellColor="linear-gradient(135deg, #f59e0b, #d97706)"
               />
-              
+
               <ProfileMenu
                 darkMode={darkMode}
                 toggleDarkMode={toggleDarkMode}

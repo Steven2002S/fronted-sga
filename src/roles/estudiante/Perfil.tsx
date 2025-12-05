@@ -5,7 +5,7 @@ import { showToast } from '../../config/toastConfig';
 import { useBreakpoints } from '../../hooks/useMediaQuery';
 import '../../styles/responsive.css';
 
-const API_BASE = 'http://localhost:3000';
+const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3000';
 
 interface PerfilProps {
   darkMode: boolean;
@@ -44,7 +44,7 @@ const Perfil: React.FC<PerfilProps> = ({ darkMode }) => {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
+
   const [passwordData, setPasswordData] = useState({
     password_actual: '',
     password_nueva: '',
@@ -59,14 +59,14 @@ const Perfil: React.FC<PerfilProps> = ({ darkMode }) => {
     try {
       setLoading(true);
       const token = sessionStorage.getItem('auth_token');
-      
+
       if (!token) {
         console.error('No token found');
         setLoading(false);
         showToast.error('Sesión expirada. Por favor, inicia sesión nuevamente.', darkMode);
         return;
       }
-      
+
       const response = await fetch(`${API_BASE}/api/auth/me`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -80,7 +80,7 @@ const Perfil: React.FC<PerfilProps> = ({ darkMode }) => {
         console.log('Contacto de emergencia:', data.contacto_emergencia);
         console.log('Todas las propiedades:', Object.keys(data));
         setEstudiante(data);
-      
+
         // La foto viene en base64 directamente desde el backend
         if (data.foto_perfil) {
           setFotoUrl(data.foto_perfil);
@@ -88,7 +88,7 @@ const Perfil: React.FC<PerfilProps> = ({ darkMode }) => {
           // Clear fotoUrl if no foto_perfil data
           setFotoUrl(null);
         }
-      
+
         setFormData({
           nombres: data.nombres || data.nombre || '',
           apellidos: data.apellidos || data.apellido || '',
@@ -113,7 +113,7 @@ const Perfil: React.FC<PerfilProps> = ({ darkMode }) => {
   };
 
   // Función eliminada - la foto ahora se carga directamente en fetchPerfil()
-  
+
 
   const handleSave = async () => {
     try {
@@ -249,10 +249,10 @@ const Perfil: React.FC<PerfilProps> = ({ darkMode }) => {
 
   if (loading) {
     return (
-      <div style={{ 
-        textAlign: 'center', 
-        padding: '3.75rem', 
-        color: darkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)' 
+      <div style={{
+        textAlign: 'center',
+        padding: '3.75rem',
+        color: darkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)'
       }}>
         Cargando perfil...
       </div>
@@ -261,10 +261,10 @@ const Perfil: React.FC<PerfilProps> = ({ darkMode }) => {
 
   if (!estudiante) {
     return (
-      <div style={{ 
-        textAlign: 'center', 
-        padding: '3.75rem', 
-        color: darkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)' 
+      <div style={{
+        textAlign: 'center',
+        padding: '3.75rem',
+        color: darkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)'
       }}>
         No se pudo cargar el perfil. Por favor, inicia sesión nuevamente.
       </div>
@@ -350,7 +350,7 @@ const Perfil: React.FC<PerfilProps> = ({ darkMode }) => {
               boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)'
             }}>
               {/* Foto de perfil */}
-              <div 
+              <div
                 onClick={() => setShowPhotoPreview(true)}
                 style={{
                   width: '5.25rem',
@@ -376,14 +376,14 @@ const Perfil: React.FC<PerfilProps> = ({ darkMode }) => {
                   e.currentTarget.style.transform = 'scale(1)';
                 }}>
                 {fotoUrl ? (
-                  <img 
-                    src={fotoUrl} 
-                    alt="Foto de perfil" 
-                    style={{ 
-                      width: '100%', 
-                      height: '100%', 
+                  <img
+                    src={fotoUrl}
+                    alt="Foto de perfil"
+                    style={{
+                      width: '100%',
+                      height: '100%',
                       objectFit: 'cover'
-                    }} 
+                    }}
                   />
                 ) : (
                   <span>
@@ -392,22 +392,22 @@ const Perfil: React.FC<PerfilProps> = ({ darkMode }) => {
                 )}
               </div>
 
-              <h3 style={{ 
-                color: theme.textPrimary, 
-                fontSize: '1rem', 
-                fontWeight: '700', 
+              <h3 style={{
+                color: theme.textPrimary,
+                fontSize: '1rem',
+                fontWeight: '700',
                 margin: '0 0 0.125rem 0'
               }}>
                 {(estudiante.nombres || estudiante.nombre || 'Estudiante')} {(estudiante.apellidos || estudiante.apellido || '')}
               </h3>
-              <p style={{ 
-                color: theme.textMuted, 
-                fontSize: '0.8125rem', 
+              <p style={{
+                color: theme.textMuted,
+                fontSize: '0.8125rem',
                 margin: '0 0 0.375rem 0'
               }}>
                 {estudiante.username ? `@${estudiante.username}` : ''}
               </p>
-              
+
               <div style={{
                 padding: '0.375rem 0.75rem',
                 background: `${theme.accent}20`,
@@ -539,10 +539,10 @@ const Perfil: React.FC<PerfilProps> = ({ darkMode }) => {
               backdropFilter: 'blur(20px)',
               boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)'
             }}>
-              <h3 style={{ 
-                color: theme.textPrimary, 
-                fontSize: isMobile ? '0.8rem' : '0.875rem', 
-                fontWeight: '700', 
+              <h3 style={{
+                color: theme.textPrimary,
+                fontSize: isMobile ? '0.8rem' : '0.875rem',
+                fontWeight: '700',
                 margin: '0 0 1rem 0',
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em',
@@ -856,8 +856,8 @@ const Perfil: React.FC<PerfilProps> = ({ darkMode }) => {
 
       {activeTab === 'password' && (
         <form onSubmit={handleChangePassword}>
-          <div style={{ 
-            maxWidth: '500px', 
+          <div style={{
+            maxWidth: '500px',
             margin: '0 auto',
             background: theme.cardBg,
             border: `1px solid ${theme.border}`,
@@ -866,10 +866,10 @@ const Perfil: React.FC<PerfilProps> = ({ darkMode }) => {
             backdropFilter: 'blur(20px)',
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)'
           }}>
-            <h3 style={{ 
-              color: theme.textPrimary, 
-              fontSize: '0.875rem', 
-              fontWeight: '700', 
+            <h3 style={{
+              color: theme.textPrimary,
+              fontSize: '0.875rem',
+              fontWeight: '700',
               margin: '0 0 1rem 0',
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
@@ -1148,44 +1148,44 @@ const Perfil: React.FC<PerfilProps> = ({ darkMode }) => {
           </button>
 
           {/* Foto ampliada en el centro */}
-          <div 
+          <div
             onClick={(e) => e.stopPropagation()}
             onMouseEnter={() => setIsPhotoHovered(true)}
             onMouseLeave={() => setIsPhotoHovered(false)}
             style={{
-            position: 'fixed',
-            left: '50%',
-            top: '50%',
-            width: '320px',
-            height: '320px',
-            borderRadius: '50%',
-            background: fotoUrl ? 'transparent' : 'var(--estudiante-accent, linear-gradient(135deg, #f59e0b, #d97706))',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '6rem',
-            fontWeight: '700',
-            color: 'var(--estudiante-text-primary, #fff)',
-            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 4px var(--estudiante-border, rgba(255, 255, 255, 0.1))',
-            border: '4px solid var(--estudiante-border, rgba(255, 255, 255, 0.15))',
-            overflow: 'hidden',
-            animation: isPhotoHovered 
-              ? 'photoScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, rotatePhoto 3s linear infinite'
-              : 'photoScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-            cursor: 'default',
-            transition: 'transform 0.3s ease'
-          }}>
+              position: 'fixed',
+              left: '50%',
+              top: '50%',
+              width: '320px',
+              height: '320px',
+              borderRadius: '50%',
+              background: fotoUrl ? 'transparent' : 'var(--estudiante-accent, linear-gradient(135deg, #f59e0b, #d97706))',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '6rem',
+              fontWeight: '700',
+              color: 'var(--estudiante-text-primary, #fff)',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 4px var(--estudiante-border, rgba(255, 255, 255, 0.1))',
+              border: '4px solid var(--estudiante-border, rgba(255, 255, 255, 0.15))',
+              overflow: 'hidden',
+              animation: isPhotoHovered
+                ? 'photoScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, rotatePhoto 3s linear infinite'
+                : 'photoScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              cursor: 'default',
+              transition: 'transform 0.3s ease'
+            }}>
             {fotoUrl ? (
-              <img 
-                src={fotoUrl} 
-                alt="Foto de perfil" 
-                style={{ 
-                  width: '100%', 
-                  height: '100%', 
+              <img
+                src={fotoUrl}
+                alt="Foto de perfil"
+                style={{
+                  width: '100%',
+                  height: '100%',
                   objectFit: 'cover'
-                }} 
+                }}
               />
             ) : (
               <span style={{

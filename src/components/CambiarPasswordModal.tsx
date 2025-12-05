@@ -4,7 +4,7 @@ import { IoMdClose } from 'react-icons/io';
 import { HiOutlineShieldCheck } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = (import.meta as any).env?.VITE_API_URL ? `${(import.meta as any).env.VITE_API_URL}/api` : 'http://localhost:3000/api';
 
 interface CambiarPasswordModalProps {
   isOpen: boolean;
@@ -14,9 +14,9 @@ interface CambiarPasswordModalProps {
   isFirstLogin?: boolean; // Si es true, es primera vez en el sistema (no reset por admin)
 }
 
-const CambiarPasswordModal: React.FC<CambiarPasswordModalProps> = ({ 
-  isOpen, 
-  onClose, 
+const CambiarPasswordModal: React.FC<CambiarPasswordModalProps> = ({
+  isOpen,
+  onClose,
   isRequired = false,
   rol,
   isFirstLogin = true
@@ -25,7 +25,7 @@ const CambiarPasswordModal: React.FC<CambiarPasswordModalProps> = ({
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
+
   const [passwordData, setPasswordData] = useState({
     password_actual: '',
     password_nueva: '',
@@ -78,7 +78,7 @@ const CambiarPasswordModal: React.FC<CambiarPasswordModalProps> = ({
 
     try {
       const token = sessionStorage.getItem('auth_token');
-      const endpoint = isRequired 
+      const endpoint = isRequired
         ? `${API_BASE}/auth/reset-password`
         : `${API_BASE}/usuarios/cambiar-password`;
 
@@ -89,15 +89,15 @@ const CambiarPasswordModal: React.FC<CambiarPasswordModalProps> = ({
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(
-          isRequired 
+          isRequired
             ? {
-                newPassword: passwordData.password_nueva,
-                confirmPassword: passwordData.confirmar_password
-              }
+              newPassword: passwordData.password_nueva,
+              confirmPassword: passwordData.confirmar_password
+            }
             : {
-                password_actual: passwordData.password_actual,
-                password_nueva: passwordData.password_nueva
-              }
+              password_actual: passwordData.password_actual,
+              password_nueva: passwordData.password_nueva
+            }
         )
       });
 
@@ -111,7 +111,7 @@ const CambiarPasswordModal: React.FC<CambiarPasswordModalProps> = ({
           confirmar_password: ''
         });
         onClose();
-        
+
         // Si era cambio obligatorio, recargar la página para actualizar el estado
         if (isRequired) {
           setTimeout(() => {
@@ -220,13 +220,13 @@ const CambiarPasswordModal: React.FC<CambiarPasswordModalProps> = ({
                 fontSize: '0.875rem',
                 margin: 0
               }}>
-                {isRequired 
+                {isRequired
                   ? 'Por seguridad, debes cambiar tu contraseña temporal'
                   : 'Actualiza tu contraseña para mantener tu cuenta segura'
                 }
               </p>
             </div>
-            
+
             {!isRequired && (
               <button
                 onClick={onClose}
@@ -283,7 +283,7 @@ const CambiarPasswordModal: React.FC<CambiarPasswordModalProps> = ({
                   fontSize: '0.8125rem',
                   lineHeight: '1.5'
                 }}>
-                  {isFirstLogin 
+                  {isFirstLogin
                     ? 'Esta es tu primera vez ingresando. Por favor, establece una contraseña segura que solo tú conozcas.'
                     : 'El administrador ha reseteado tu contraseña. Por seguridad, debes establecer una nueva contraseña antes de continuar.'
                   }
@@ -492,8 +492,8 @@ const CambiarPasswordModal: React.FC<CambiarPasswordModalProps> = ({
                   color: passwordData.password_nueva === passwordData.confirmar_password ? colors.primary : '#ef4444'
                 }}>
                   <FaCheckCircle size={14} />
-                  {passwordData.password_nueva === passwordData.confirmar_password 
-                    ? 'Las contraseñas coinciden' 
+                  {passwordData.password_nueva === passwordData.confirmar_password
+                    ? 'Las contraseñas coinciden'
                     : 'Las contraseñas no coinciden'
                   }
                 </div>

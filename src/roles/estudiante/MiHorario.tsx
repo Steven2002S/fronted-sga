@@ -3,7 +3,7 @@ import { MapPin, Clock } from 'lucide-react';
 import { useBreakpoints } from '../../hooks/useMediaQuery';
 import '../../styles/responsive.css';
 
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = (import.meta as any).env?.VITE_API_URL ? `${(import.meta as any).env.VITE_API_URL}/api` : 'http://localhost:3000/api';
 
 interface MiHorarioProps {
   darkMode: boolean;
@@ -49,7 +49,7 @@ const MiHorario: React.FC<MiHorarioProps> = ({ darkMode }) => {
       if (response.ok) {
         const data = await response.json();
         // Filtrar solo cursos con horario definido
-        const cursosConHorario = data.filter((curso: any) => 
+        const cursosConHorario = data.filter((curso: any) =>
           curso.horario?.hora_inicio && curso.horario?.hora_fin && curso.horario?.dias
         );
         // Mapear al formato de horario
@@ -143,9 +143,9 @@ const MiHorario: React.FC<MiHorarioProps> = ({ darkMode }) => {
 
   if (horarios.length === 0) {
     return (
-      <div style={{ 
-        textAlign: 'center', 
-        padding: '3.75em', 
+      <div style={{
+        textAlign: 'center',
+        padding: '3.75em',
         color: theme.textSecondary,
         background: theme.cardBg,
         border: `0.0625rem solid ${theme.border}`,
@@ -332,9 +332,9 @@ const MiHorario: React.FC<MiHorarioProps> = ({ darkMode }) => {
                       }}>
                         {clase.codigo_curso}
                       </div>
-                      <div style={{ 
-                        color: 'rgba(255,255,255,0.85)', 
-                        fontSize: '0.55rem', 
+                      <div style={{
+                        color: 'rgba(255,255,255,0.85)',
+                        fontSize: '0.55rem',
                         marginTop: '0.125em',
                         fontWeight: '600',
                         fontStyle: 'italic'
