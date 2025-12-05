@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  BarChart3, 
+import {
+  BarChart3,
   FileText,
   Settings,
   Users,
@@ -50,7 +50,7 @@ const PanelSuperAdmin: React.FC = () => {
     try {
       const token = sessionStorage.getItem('auth_token');
       if (!token) return;
-      const response = await fetch('http://localhost:3000/api/auth/me', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/auth/me`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -155,8 +155,8 @@ const PanelSuperAdmin: React.FC = () => {
           color: var(--superadmin-text-muted) !important;
         }
       `}</style>
-      
-      <div 
+
+      <div
         className="superadmin-panel"
         style={{
           minHeight: '100vh',
@@ -272,7 +272,7 @@ const PanelSuperAdmin: React.FC = () => {
           }}>
             {(isMobile || !sidebarCollapsed) && <SchoolLogo size={140} darkMode={darkMode} />}
           </div>
-        
+
           {/* Navegación del Sidebar */}
           <nav style={{
             marginBottom: '2em',
@@ -329,9 +329,9 @@ const PanelSuperAdmin: React.FC = () => {
                   <IconComponent size={18} style={{ flexShrink: 0 }} />
                   {showText && <span>{tab.name}</span>}
                 </button>
-            );
-          })}
-        </nav>
+              );
+            })}
+          </nav>
 
         </div>
 
@@ -388,9 +388,9 @@ const PanelSuperAdmin: React.FC = () => {
             )}
 
             {/* Información del módulo activo */}
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
               gap: isMobile ? '0.625em' : '1em',
               flex: 1,
               minWidth: 0
@@ -443,10 +443,10 @@ const PanelSuperAdmin: React.FC = () => {
             </div>
 
             {/* Iconos del lado derecho */}
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: isMobile ? '0.5em' : '0.75em', 
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: isMobile ? '0.5em' : '0.75em',
               position: 'relative',
               flexShrink: 0
             }}>
@@ -455,32 +455,32 @@ const PanelSuperAdmin: React.FC = () => {
                 toggleDarkMode={toggleDarkMode}
                 theme={theme}
                 userData={userData}
-                onChangePassword={() => {}}
+                onChangePassword={() => { }}
                 avatarColor="linear-gradient(135deg, #ef4444, #dc2626)"
-            />
+              />
+            </div>
+          </div>
+
+          {/* Contenido de la sección activa */}
+          <div style={{
+            background: theme.contentBg,
+            backdropFilter: 'blur(1.25rem)',
+            border: `0.0625rem solid ${theme.border}`,
+            borderRadius: '1.25rem',
+            padding: '2em',
+            minHeight: '37.5rem',
+            boxShadow: darkMode ? '0 0.5rem 2rem rgba(0, 0, 0, 0.3)' : '0 0.5rem 2rem rgba(0, 0, 0, 0.1)'
+          }}>
+            <AdminThemeWrapper darkMode={darkMode}>
+              {activeTab === 'dashboard' && <PanelDashboardSuperAdmin />}
+              {activeTab === 'administradores' && <AdministradoresPanel />}
+              {activeTab === 'auditoria' && <HistorialAuditoria />}
+              {activeTab === 'config' && <ConfiguracionPanel />}
+            </AdminThemeWrapper>
           </div>
         </div>
-
-        {/* Contenido de la sección activa */}
-        <div style={{
-          background: theme.contentBg,
-          backdropFilter: 'blur(1.25rem)',
-          border: `0.0625rem solid ${theme.border}`,
-          borderRadius: '1.25rem',
-          padding: '2em',
-          minHeight: '37.5rem',
-          boxShadow: darkMode ? '0 0.5rem 2rem rgba(0, 0, 0, 0.3)' : '0 0.5rem 2rem rgba(0, 0, 0, 0.1)'
-        }}>
-          <AdminThemeWrapper darkMode={darkMode}>
-            {activeTab === 'dashboard' && <PanelDashboardSuperAdmin />}
-            {activeTab === 'administradores' && <AdministradoresPanel />}
-            {activeTab === 'auditoria' && <HistorialAuditoria />}
-            {activeTab === 'config' && <ConfiguracionPanel />}
-          </AdminThemeWrapper>
-        </div>
       </div>
-    </div>
-  </>
+    </>
   );
 };
 

@@ -56,7 +56,7 @@ const PanelAdministrativos = () => {
   const [userData, setUserData] = useState<{ nombre?: string; apellido?: string; nombres?: string; apellidos?: string; id_usuario?: number; foto_perfil?: string } | null>(null);
 
   // Hook de notificaciones con WebSocket
-  const { 
+  const {
     notificaciones,
     marcarTodasLeidas
   } = useNotifications('admin');
@@ -68,7 +68,7 @@ const PanelAdministrativos = () => {
       console.log('Token para obtener datos:', token ? 'Existe' : 'No existe');
       if (!token) return;
 
-      const response = await fetch('http://localhost:3000/api/auth/me', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/auth/me`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -439,9 +439,9 @@ const PanelAdministrativos = () => {
             )}
 
             {/* Información del módulo activo */}
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
               gap: isMobile ? '0.625em' : '1em',
               flex: 1,
               minWidth: 0
@@ -494,10 +494,10 @@ const PanelAdministrativos = () => {
             </div>
 
             {/* Iconos del lado derecho */}
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: isMobile ? '0.5em' : '0.75em', 
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: isMobile ? '0.5em' : '0.75em',
               position: 'relative',
               flexShrink: 0
             }}>
@@ -508,7 +508,7 @@ const PanelAdministrativos = () => {
                 darkMode={darkMode}
                 bellColor="linear-gradient(135deg, #ef4444, #dc2626)"
               />
-              
+
               <ProfileMenu
                 darkMode={darkMode}
                 toggleDarkMode={toggleDarkMode}
