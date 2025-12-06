@@ -96,10 +96,8 @@ const ConfiguracionPanel: React.FC = () => {
         const data = await response.json();
         if (data.foto_perfil) {
           setFotoUrl(data.foto_perfil);
-          console.log('Foto cargada en ConfiguracionPanel:', data.foto_perfil);
         } else {
           setFotoUrl(null);
-          console.log('No hay foto de perfil');
         }
       }
     } catch (error) {
