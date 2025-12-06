@@ -340,11 +340,6 @@ const GestionPagosEstudiante = () => {
     try {
       const token = sessionStorage.getItem('auth_token');
 
-      console.log('[Pagos] Obteniendo URL del comprobante:', {
-        id_pago: pago.id_pago,
-        numero_comprobante: pago.numero_comprobante
-      });
-
       // Obtener la URL de Cloudinary desde el endpoint
       const response = await fetch(`${API_BASE}/api/admin/pagos/${pago.id_pago}/comprobante`, {
         headers: { 'Authorization': `Bearer ${token}` }

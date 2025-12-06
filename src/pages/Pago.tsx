@@ -783,12 +783,10 @@ const Pago: React.FC = () => {
       console.log('Matrícula aprobada - Actualizando cupos y disponibilidad (debounced)', data);
       debouncedReload();
     },
-    'solicitud_actualizada': (data: any) => {
-      console.log('Solicitud actualizada - Actualizando cupos y disponibilidad (debounced)', data);
+    'solicitud_actualizada': () => {
       debouncedReload();
     },
-    'nueva_solicitud': (data: any) => {
-      console.log('Nueva solicitud - Actualizando cupos y disponibilidad (debounced)', data);
+    'nueva_solicitud': () => {
       debouncedReload();
     }
   });
