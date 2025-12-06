@@ -59,14 +59,11 @@ const ConfiguracionPanel: React.FC = () => {
   // Listener WebSocket para actualización de foto en tiempo real
   useSocket({
     'profile_picture_updated': (data: any) => {
-      console.log('📸 Foto de perfil actualizada en tiempo real (ConfiguracionPanel):', data);
       if (data.id_usuario === userData?.id_usuario) {
         if (data.deleted) {
           setFotoUrl(null);
-          console.log('✓ Foto eliminada correctamente (ConfiguracionPanel)');
         } else if (data.foto_perfil_url) {
           setFotoUrl(data.foto_perfil_url);
-          console.log('✓ Foto actualizada correctamente (ConfiguracionPanel)');
         }
       }
     }

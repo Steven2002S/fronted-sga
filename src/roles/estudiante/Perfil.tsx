@@ -73,7 +73,6 @@ const Perfil: React.FC<PerfilProps> = ({ darkMode }) => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Todas las propiedades:', Object.keys(data));
         setEstudiante(data);
 
         // La foto viene en base64 directamente desde el backend
