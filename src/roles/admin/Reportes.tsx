@@ -437,7 +437,6 @@ const Reportes: React.FC<ReportesProps> = ({ darkMode: inheritedDarkMode }) => {
       }
 
       const data = await response.json();
-      console.log('Cursos recibidos para períodos:', data);
       console.log('Cantidad de cursos:', data.data?.length || 0);
 
       if (data.success && data.data.length > 0) {
@@ -503,10 +502,8 @@ const Reportes: React.FC<ReportesProps> = ({ darkMode: inheritedDarkMode }) => {
       }
 
       const data = await response.json();
-      console.log('Cursos recibidos para filtro:', data);
 
       if (data.success) {
-        console.log('Cursos disponibles:', data.data);
         setCursosDisponibles(data.data);
         setCursosFiltrados(data.data); // Inicialmente mostrar todos
       } else {
@@ -666,7 +663,6 @@ const Reportes: React.FC<ReportesProps> = ({ darkMode: inheritedDarkMode }) => {
       console.log('Status de respuesta:', response.status);
 
       const data = await response.json();
-      console.log('Datos recibidos:', data);
 
       if (response.status === 401) {
         setError('Sesión expirada. Por favor, vuelve a iniciar sesión.');

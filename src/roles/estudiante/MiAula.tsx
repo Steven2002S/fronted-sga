@@ -155,7 +155,6 @@ const MiAula: React.FC<MiAulaProps> = ({ darkMode, onNavigate }) => {
 
       if (response.ok) {
         const cursos = await response.json();
-        console.log('Cursos cargados:', cursos);
         setCursosMatriculados(cursos);
         setError('');
       } else {

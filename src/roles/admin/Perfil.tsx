@@ -66,16 +66,13 @@ const Perfil: React.FC<PerfilProps> = ({ darkMode = true, onPhotoUpdate }) => {
   // Listener WebSocket para actualización de foto en tiempo real
   useSocket({
     'profile_picture_updated': (data: any) => {
-      console.log('📸 Foto de perfil actualizada en tiempo real (Perfil):', data);
       if (data.id_usuario === userData?.id_usuario) {
         if (data.deleted) {
           // Foto eliminada
           setFotoUrl(null);
-          console.log('✓ Foto eliminada correctamente (Perfil)');
         } else if (data.foto_perfil_url) {
           // Foto actualizada
           setFotoUrl(data.foto_perfil_url);
-          console.log('✓ Foto actualizada correctamente (Perfil)');
         }
       }
     }

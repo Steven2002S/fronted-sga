@@ -739,7 +739,6 @@ const Pago: React.FC = () => {
 
       setCuposDisponibles(cupos);
       writeCacheEntry('cupos', cupos);
-      console.log('Cupos disponibles cargados:', cupos);
       console.log('Total de registros:', cupos.length);
 
       // TOAST DE ÉXITO (solo si showToast es true)
@@ -1415,36 +1414,30 @@ Realiza una nueva transferencia o verifica si ya tienes una solicitud previa reg
 
         if (promosResponse.ok) {
           const todasPromos = await promosResponse.json();
-          console.log('Total promociones activas:', todasPromos.length, todasPromos);
+          console.log('Total promociones activas:', todasPromos.length);
 
           // Filtrar promociones que apliquen al tipo de curso actual
           // Las promociones ahora tienen id_curso_principal (el que el estudiante paga)
           const cursosResponse = await fetch(`${API_BASE}/cursos?tipo=${tipoCursoId}`);
-          console.log('Response cursos del tipo:', cursosResponse.status);
 
           if (cursosResponse.ok) {
             const cursosDelTipo = await cursosResponse.json();
-            console.log('Cursos del tipo', tipoCursoId, ':', cursosDelTipo);
 
             const idsCursos = cursosDelTipo
               .filter((c: any) => c.estado === 'activo')
               .map((c: any) => c.id_curso);
 
-            console.log('IDs de cursos activos:', idsCursos);
-
             // Filtrar promociones cuyo id_curso_principal esté en la lista
             const promosAplicables = todasPromos.filter((promo: any) => {
               const aplica = idsCursos.includes(promo.id_curso_principal);
-              console.log(`  🔍 Promo "${promo.nombre_promocion}" (id_curso_principal: ${promo.id_curso_principal}) → ${aplica ? '✅ APLICA' : '❌ NO APLICA'}`);
               return aplica;
             });
 
-            console.log('Promociones aplicables:', promosAplicables.length, promosAplicables);
+            console.log('Promociones aplicables:', promosAplicables.length);
 
             if (promosAplicables.length > 0) {
               setPromocionesDisponibles(promosAplicables);
               setShowPromoModal(true);
-              console.log('showPromoModal establecido a TRUE');
               // NO mostrar success ni redirigir aún
               return;
             } else {
