@@ -328,7 +328,6 @@ const ControlUsuarios = () => {
         });
         if (usuarioRes.ok) {
           const usuarioData = await usuarioRes.json();
-          console.log('?? Usuario completo recibido:', usuarioData);
           setUsuarioSeleccionado(usuarioData.usuario);
         } else {
           console.error('? Error al cargar usuario:', usuarioRes.status);
@@ -346,7 +345,6 @@ const ControlUsuarios = () => {
         });
         if (sesionesRes.ok) {
           const sesionesData = await sesionesRes.json();
-          console.log('?? Sesiones recibidas:', sesionesData);
           setSesiones(sesionesData.sesiones || []);
         } else {
           console.error('? Error al cargar sesiones:', sesionesRes.status);
@@ -364,7 +362,6 @@ const ControlUsuarios = () => {
         });
         if (historialRes.ok) {
           const historialData = await historialRes.json();
-          console.log('Historial detallado recibido:', historialData);
           setAcciones(historialData.data?.acciones || []);
         } else {
           console.error('Error al cargar historial:', historialRes.status);
@@ -383,7 +380,6 @@ const ControlUsuarios = () => {
           });
           if (pagosRes.ok) {
             const pagosData = await pagosRes.json();
-            console.log('?? Pagos recibidos:', pagosData);
             setPagos(pagosData.pagos || []);
           } else {
             console.error('? Error al cargar pagos:', pagosRes.status);
@@ -401,7 +397,6 @@ const ControlUsuarios = () => {
           });
           if (deberesRes.ok) {
             const deberesData = await deberesRes.json();
-            console.log('?? Deberes recibidos:', deberesData);
             setDeberes(deberesData.deberes || []);
           } else {
             console.error('? Error al cargar deberes:', deberesRes.status);
@@ -436,7 +431,6 @@ const ControlUsuarios = () => {
       });
       if (historialRes.ok) {
         const historialData = await historialRes.json();
-        console.log('Historial detallado recibido:', historialData);
 
         const accionesParsed = (historialData.data?.acciones || []).map((accion: any) => {
           if (typeof accion.detalles === 'string') {

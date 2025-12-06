@@ -302,12 +302,6 @@ const ModalEntregas: React.FC<ModalEntregasProps> = ({
 
       const nombrePersonalizado = `${apellidoLimpio}_${nombreLimpio}_${tareaLimpia}.${extension}`;
 
-      console.log('Nombre personalizado generado:', nombrePersonalizado);
-      console.log('Apellido limpio:', apellidoLimpio);
-      console.log('Nombre limpio:', nombreLimpio);
-      console.log('Tarea limpia:', tareaLimpia);
-      console.log('Extension:', extension);
-
            // Usar URL de Cloudinary directamente
       if (!entrega.archivo_url) {
         throw new Error('No hay archivo disponible');

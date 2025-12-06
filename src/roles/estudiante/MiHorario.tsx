@@ -64,7 +64,6 @@ const MiHorario: React.FC<MiHorarioProps> = ({ darkMode }) => {
           dias: curso.horario.dias,
           docente_nombre: curso.docente?.nombre_completo || 'Sin docente asignado'
         }));
-        console.log('Horario del estudiante:', horariosFormateados);
         setHorarios(horariosFormateados);
       } else {
         console.error('Error al cargar horario');
