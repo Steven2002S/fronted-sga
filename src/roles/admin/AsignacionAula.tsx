@@ -285,13 +285,6 @@ const AsignacionAula: React.FC<AsignacionAulaProps> = ({ darkMode: inheritedDark
       const cursosData = await cursosRes.json();
       const docentesData = await docentesRes.json();
 
-      console.log('Datos cargados:', {
-        asignaciones: asignacionesData,
-        aulas: aulasData,
-        cursos: cursosData,
-        docentes: docentesData
-      });
-
       // Manejar diferentes formatos de respuesta
       const asignacionesList = asignacionesData.asignaciones || [];
       const aulasList = aulasData.aulas || [];
@@ -302,14 +295,6 @@ const AsignacionAula: React.FC<AsignacionAulaProps> = ({ darkMode: inheritedDark
       setAulas(aulasList);
       setCursos(cursosList);
       setDocentes(docentesList);
-
-      console.log('Estados actualizados:', {
-        totalAsignaciones: asignacionesList.length,
-        totalAulas: aulasList.length,
-        totalCursos: cursosList.length,
-        totalDocentes: docentesList.length,
-        docentesActivos: docentesList.filter((d: any) => d.estado === 'activo').length
-      });
     } catch (err: any) {
       console.error('Error cargando datos:', err);
       setError(err.message || 'Error cargando datos');

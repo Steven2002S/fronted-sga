@@ -127,8 +127,6 @@ const Perfil: React.FC<PerfilProps> = ({ darkMode }) => {
         contacto_emergencia: formData.contacto_emergencia || ''
       };
 
-      console.log('Datos a enviar:', cleanedData);
-
       const response = await fetch(`${API_BASE}/api/usuarios/mi-perfil`, {
         method: 'PUT',
         headers: {

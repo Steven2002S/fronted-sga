@@ -1511,12 +1511,6 @@ Realiza una nueva transferencia o verifica si ya tienes una solicitud previa reg
       console.log(' Solicitud actualizada con promoción en el backend');
 
       // Mostrar mensaje de éxito
-      console.log('Promoción seleccionada:', {
-        id_promocion,
-        id_solicitud: solicitudCreada.id_solicitud || solicitudCreada.codigo_solicitud,
-        nombre_promocion: promoSeleccionada?.nombre_promocion
-      });
-
       const beneficioTexto = promoSeleccionada?.modalidad_pago === 'clases'
         ? `${promoSeleccionada?.clases_gratis} ${promoSeleccionada?.clases_gratis === 1 ? 'clase gratis' : 'clases gratis'}`
         : `${promoSeleccionada?.meses_gratis} ${promoSeleccionada?.meses_gratis === 1 ? 'mes gratis' : 'meses gratis'}`;

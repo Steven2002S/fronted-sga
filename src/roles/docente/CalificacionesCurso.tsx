@@ -284,10 +284,7 @@ const CalificacionesCurso: React.FC<ModalCalificacionesProps> = ({ darkMode }) =
       if (calificacionesCompletasResponse.ok) {
         try {
           datosCompletos = await calificacionesCompletasResponse.json();
-          console.log("Datos completos recibidos:", datosCompletos);
           if (datosCompletos.success) {
-            console.log("Módulos encontrados:", datosCompletos.modulos);
-            console.log("Peso por módulo:", datosCompletos.peso_por_modulo);
             setModulos(datosCompletos.modulos || []);
             setPesoPorModulo(datosCompletos.peso_por_modulo || 0);
           }
