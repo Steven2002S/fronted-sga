@@ -116,10 +116,8 @@ const Perfil: React.FC<PerfilProps> = ({ darkMode = true, onPhotoUpdate }) => {
         // Usar directamente la URL de Cloudinary si existe
         if (data.foto_perfil) {
           setFotoUrl(data.foto_perfil);
-          console.log('Foto cargada en Perfil:', data.foto_perfil);
         } else {
           setFotoUrl(null);
-          console.log('No hay foto de perfil');
         }
       }
     } catch (error) {
