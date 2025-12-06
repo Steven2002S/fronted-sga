@@ -84,30 +84,25 @@ const MiAula: React.FC<MiAulaProps> = ({ darkMode, onNavigate }) => {
   // Configurar eventos de WebSocket
   const socketEvents = {
     'nueva_tarea': (data: any) => {
-      console.log('Nueva tarea asignada:', data);
       showToast.info(`Nueva tarea: ${data.titulo_tarea}`, darkMode);
       // Recargar cursos para actualizar contador de tareas pendientes
       fetchCursosMatriculados();
     },
     'nuevo_modulo': (data: any) => {
-      console.log('Nuevo módulo disponible:', data);
       showToast.info(`Nuevo módulo: ${data.nombre_modulo}`, darkMode);
       // Recargar cursos para actualizar información
       fetchCursosMatriculados();
     },
     'tarea_calificada': (data: any) => {
-      console.log('Tarea calificada:', data);
       showToast.success(`Tarea calificada con ${data.nota} puntos`, darkMode);
       // Recargar cursos para actualizar progreso y calificación
       fetchCursosMatriculados();
     },
     'progreso_actualizado': (data: any) => {
-      console.log('Progreso actualizado:', data);
       // Recargar cursos
       fetchCursosMatriculados();
     },
     'tarea_entregada': (data: any) => {
-      console.log('Tarea entregada:', data);
       // Recargar cursos
       fetchCursosMatriculados();
     }

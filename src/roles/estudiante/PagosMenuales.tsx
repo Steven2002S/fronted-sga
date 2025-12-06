@@ -90,7 +90,6 @@ const PagosMenuales: React.FC<PagosMenualesProps> = ({ darkMode = false }) => {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
         setUserId(payload.id_usuario);
-        console.log('userId obtenido para WebSocket:', payload.id_usuario);
       } catch (error) {
         console.error('Error decodificando token:', error);
       }
@@ -99,7 +98,6 @@ const PagosMenuales: React.FC<PagosMenualesProps> = ({ darkMode = false }) => {
 
   useSocket({
     'pago_verificado_estudiante': (data: any) => {
-      console.log('Pago verificado (estudiante):', data);
       showToast.success(`Tu pago de la cuota #${data.numero_cuota} ha sido verificado!`, darkMode);
       loadData();
       // Recargar cuotas si el curso está expandido
@@ -108,7 +106,6 @@ const PagosMenuales: React.FC<PagosMenualesProps> = ({ darkMode = false }) => {
       }
     },
     'pago_verificado': (data: any) => {
-      console.log('Pago verificado (broadcast):', data);
       showToast.success('Tu pago ha sido verificado!', darkMode);
       loadData();
       // Recargar cuotas si el curso está expandido
@@ -117,7 +114,6 @@ const PagosMenuales: React.FC<PagosMenualesProps> = ({ darkMode = false }) => {
       }
     },
     'pago_rechazado': (data: any) => {
-      console.log('Pago rechazado:', data);
       showToast.error(`Pago rechazado: ${data.observaciones}`, darkMode);
       loadData();
       // Recargar cuotas si el curso está expandido

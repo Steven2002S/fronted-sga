@@ -47,7 +47,6 @@ const MiHorario: React.FC<MiHorarioProps> = ({ darkMode }) => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Horario del docente:', data);
         setHorarios(data);
       } else {
         console.error('Error al cargar horario');

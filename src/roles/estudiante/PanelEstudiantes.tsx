@@ -85,7 +85,6 @@ const PanelEstudiantes = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Datos del usuario estudiante:', data);
         setUserData(data);
       }
     } catch (error) {

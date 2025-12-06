@@ -57,7 +57,6 @@ const MisEstudiantes: React.FC<MisEstudiantesProps> = ({ darkMode }) => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Estudiantes del docente (raw data):', data);
 
         // Sort students alphabetically by apellido
         const sortedData = [...data].sort((a: Estudiante, b: Estudiante) => {

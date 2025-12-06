@@ -71,7 +71,6 @@ const ProfileMenu = ({ darkMode, toggleDarkMode, theme, userData, avatarColor = 
           
           if (response.ok) {
             const data = await response.json();
-            console.log('📸 Datos recibidos de /api/auth/me:', data);
             if (data.foto_perfil) {
               setCurrentFotoUrl(data.foto_perfil);
             } else {

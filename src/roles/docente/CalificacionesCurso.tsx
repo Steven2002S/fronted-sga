@@ -172,8 +172,6 @@ const CalificacionesCurso: React.FC<ModalCalificacionesProps> = ({ darkMode }) =
   // Escuchar eventos de WebSocket para actualizaciones en tiempo real
   useSocket({
     calificacion_actualizada: (data: any) => {
-      console.log("[WebSocket Docente] Calificación actualizada:", data);
-
       // Verificar si la calificación pertenece a este curso
       if (data.id_curso === cursoId) {
         showToast.success('Calificación actualizada', darkMode);
@@ -183,8 +181,6 @@ const CalificacionesCurso: React.FC<ModalCalificacionesProps> = ({ darkMode }) =
       }
     },
     entrega_calificada: (data: any) => {
-      console.log("[WebSocket Docente] Entrega calificada:", data);
-
       // Verificar si la entrega pertenece a este curso
       if (data.id_curso === cursoId) {
         const nombreEstudiante = data.estudiante_nombre && data.estudiante_apellido

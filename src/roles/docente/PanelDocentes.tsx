@@ -62,7 +62,6 @@ const PanelDocentes = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Datos del usuario docente:', data);
         // Handle both nombre/nombres and apellido/apellidos for compatibility
         const userDataWithNames = {
           ...data,

@@ -26,7 +26,6 @@ export const useSocket = (events: { [event: string]: (data: any) => void }, user
       const authUser = sessionStorage.getItem('auth_user');
       if (authUser) {
         const userData = JSON.parse(authUser);
-        console.log('Usuario obtenido de sessionStorage:', userData.id_usuario);
         return userData.id_usuario;
       }
 
@@ -36,12 +35,9 @@ export const useSocket = (events: { [event: string]: (data: any) => void }, user
         const parts = token.split('.');
         if (parts.length === 3) {
           const payload = JSON.parse(atob(parts[1]));
-          console.log('Usuario obtenido del token JWT:', payload.id_usuario);
           return payload.id_usuario;
         }
       }
-
-      console.warn('No se encontró auth_user ni token válido');
     } catch (error) {
       console.error('Error obteniendo userId:', error);
     }
@@ -61,8 +57,6 @@ export const useSocket = (events: { [event: string]: (data: any) => void }, user
       const socket = socketRef.current;
 
       socket.on('connect', () => {
-        console.log('Conectado a WebSocket');
-
         // Obtener userId y rol
         const currentUserId = getUserId();
         const token = sessionStorage.getItem('auth_token');
@@ -72,7 +66,6 @@ export const useSocket = (events: { [event: string]: (data: any) => void }, user
           try {
             const payload = JSON.parse(atob(token.split('.')[1]));
             rol = payload.rol;
-            console.log(`Rol obtenido del token: ${rol}`);
           } catch (e) {
             console.error('Error decodificando rol:', e);
           }
@@ -85,18 +78,15 @@ export const useSocket = (events: { [event: string]: (data: any) => void }, user
             rol,
             cursos: courseIdsRef.current || []
           });
-          console.log(`Usuario ${currentUserId} (${rol}) registrado en WebSocket con cursos:`, courseIdsRef.current);
-        } else {
-          console.warn('No se pudo obtener userId para registrar en WebSocket');
         }
       });
 
       socket.on('registered', (data: any) => {
-        console.log('Confirmación de registro en WebSocket:', data);
+        // Registro confirmado
       });
 
       socket.on('disconnect', () => {
-        console.log('Desconectado de WebSocket');
+        // Desconectado
       });
     }
 
@@ -110,22 +100,15 @@ export const useSocket = (events: { [event: string]: (data: any) => void }, user
 
       // Registrar los nuevos eventos
       const eventNames = Object.keys(events);
-      console.log(`Registrando ${eventNames.length} eventos:`, eventNames);
 
       eventNames.forEach((eventName) => {
         socket.on(eventName, (data: any) => {
-          console.log(`[WebSocket] Evento recibido: ${eventName}`, data);
           // Usar eventsRef.current para obtener siempre el handler más reciente
           if (eventsRef.current[eventName]) {
             eventsRef.current[eventName](data);
-            console.log(`Handler ejecutado para: ${eventName}`);
-          } else {
-            console.warn(`No hay handler para: ${eventName}`);
           }
         });
       });
-
-      console.log(`Todos los eventos registrados exitosamente`);
     }
 
     // NO limpiar el socket para mantener la conexión persistente
@@ -139,8 +122,6 @@ export const useSocket = (events: { [event: string]: (data: any) => void }, user
   // Re-registrar usuario cuando el userId o courseIds cambien
   useEffect(() => {
     if (socketRef.current && socketRef.current.connected && userId) {
-      console.log(`Re-registrando usuario ${userId} en WebSocket con cursos:`, courseIds);
-
       const token = sessionStorage.getItem('auth_token');
       let rol = 'unknown';
       if (token) {
@@ -156,7 +137,6 @@ export const useSocket = (events: { [event: string]: (data: any) => void }, user
         rol,
         cursos: courseIds || []
       });
-      console.log(`Usuario ${userId} re-registrado exitosamente`);
     }
     // Usamos JSON.stringify para evitar re-renders por cambios de referencia en el array courseIds
     // eslint-disable-next-line react-hooks/exhaustive-deps

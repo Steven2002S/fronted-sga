@@ -222,10 +222,6 @@ const ControlUsuarios = () => {
 
       const data = await response.json();
 
-      // DEBUG: Verificar fotos (simplificado para no mostrar base64 completo)
-      const conFoto = data.usuarios?.filter((u: any) => u.foto_perfil).length || 0;
-      console.log(' Usuarios con foto:', conFoto, 'de', data.usuarios?.length);
-
       // Obtener ID del usuario logueado
       let idUsuarioLogueado = null;
       try {

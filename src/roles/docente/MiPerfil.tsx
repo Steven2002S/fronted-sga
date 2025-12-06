@@ -64,9 +64,6 @@ const MiPerfil: React.FC<MiPerfilProps> = ({ darkMode }) => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Datos del docente desde el backend:', data);
-        console.log('Identificación:', data.identificacion);
-        console.log('Todas las propiedades:', Object.keys(data));
         setDocente(data);
         setFormData({
           nombres: data.nombres || '',

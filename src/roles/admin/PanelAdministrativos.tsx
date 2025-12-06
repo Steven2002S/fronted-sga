@@ -72,18 +72,11 @@ const PanelAdministrativos = () => {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
-      console.log('Status de /api/auth/me:', response.status);
-
       if (response.ok) {
         const data = await response.json();
-        console.log('Datos del usuario recibidos:', data);
         // Handle both nombre/nombres and apellido/apellidos for compatibility
         const nombres = data.nombres || data.nombre || '';
         const apellidos = data.apellidos || data.apellido || '';
-        console.log('Nombres:', nombres);
-        console.log('Apellidos:', apellidos);
-        console.log('Foto perfil:', data.foto_perfil);
-        console.log('Todas las propiedades:', Object.keys(data));
         setUserData(data);
       } else {
         console.error('Error en respuesta:', response.status);
