@@ -184,21 +184,17 @@ const GestionPagosEstudiante = () => {
 
   useSocket({
     'nuevo_pago': (data: any) => {
-      console.log('[Pagos] Nuevo pago recibido:', data);
       showToast.success('Nuevo pago registrado', darkMode);
       setSocketTrigger(prev => prev + 1);
     },
     'nuevo_pago_pendiente': (data: any) => {
-      console.log('[Pagos] Nuevo pago pendiente:', data);
       showToast.success(`Nuevo pago de ${data.estudiante_nombre} - Cuota #${data.numero_cuota}`, darkMode);
       setSocketTrigger(prev => prev + 1);
     },
     'pago_verificado': (data: any) => {
-      console.log('[Pagos] Pago verificado:', data);
       setSocketTrigger(prev => prev + 1);
     },
     'pago_rechazado': (data: any) => {
-      console.log('[Pagos] Pago rechazado:', data);
       setSocketTrigger(prev => prev + 1);
     }
   });

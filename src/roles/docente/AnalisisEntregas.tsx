@@ -61,8 +61,6 @@ const AnalisisEntregas: React.FC = () => {
   // 🔥 WebSocket: Escuchar nuevas entregas en tiempo real
   useSocket({
     'entrega_nueva': (data: any) => {
-      console.log('[WebSocket Docente] Nueva entrega recibida:', data);
-
       // Verificar si la entrega es de la tarea actual
       if (data.id_tarea === parseInt(id_tarea || '0')) {
         showToast.success(`Nueva entrega de ${data.entrega?.estudiante_nombre || 'un estudiante'}`, darkMode);
@@ -72,8 +70,6 @@ const AnalisisEntregas: React.FC = () => {
       }
     },
     'entrega_actualizada': (data: any) => {
-      console.log('[WebSocket Docente] Entrega actualizada:', data);
-
       // Si es de esta tarea, recargar
       if (data.id_tarea === parseInt(id_tarea || '0')) {
         showToast.success(`${data.entrega?.estudiante_nombre || 'Un estudiante'} actualizó su entrega`, darkMode);
@@ -103,8 +99,6 @@ const AnalisisEntregas: React.FC = () => {
       const responseTarea = await axios.get(`${API_BASE}/api/tareas/${id_tarea}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-
-      console.log('Datos de la tarea:', responseTarea.data.tarea);
 
       setEntregas(responseEntregas.data.entregas || []);
       setTareaInfo(responseTarea.data.tarea || {});

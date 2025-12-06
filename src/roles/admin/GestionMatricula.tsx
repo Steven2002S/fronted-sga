@@ -197,13 +197,11 @@ const GestionMatricula = () => {
 
   useSocket({
     'nueva_solicitud_matricula': (data: any) => {
-      console.log('Nueva solicitud recibida:', data);
       showToast.success(`Nueva solicitud: ${data.nombre_solicitante} ${data.apellido_solicitante}`, darkMode);
       void fetchSolicitudes();
       void fetchCounters();
     },
     'solicitud_actualizada': (data: any) => {
-      console.log('Solicitud actualizada:', data);
       void fetchSolicitudes();
       void fetchCounters();
     }

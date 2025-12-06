@@ -68,15 +68,10 @@ const ModalEntregas: React.FC<ModalEntregasProps> = ({
     try {
       setLoading(true);
       const token = sessionStorage.getItem('auth_token');
-      console.log('Fetching entregas para tarea:', id_tarea);
       const response = await axios.get(`${API_BASE}/api/entregas/tarea/${id_tarea}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = response.data;
-      console.log('Respuesta de entregas:', data);
-      console.log('Primera entrega completa:', data.entregas[0]);
-      console.log('archivo_nombre de primera entrega:', data.entregas[0]?.archivo_nombre);
-      console.log('archivo_nombre_original de primera entrega:', data.entregas[0]?.archivo_nombre_original);
 
       const entregasConEstado = data.entregas.map((entrega: any) => ({
         ...entrega,
@@ -84,7 +79,6 @@ const ModalEntregas: React.FC<ModalEntregasProps> = ({
       }));
 
       setEntregas(entregasConEstado);
-      console.log('Entregas establecidas:', entregasConEstado);
     } catch (error) {
       console.error('Error fetching entregas:', error);
       showToast.error('Error al cargar las entregas', darkMode);
@@ -95,7 +89,6 @@ const ModalEntregas: React.FC<ModalEntregasProps> = ({
 
   useSocket({
     'tarea_entregada_docente': (data: any) => {
-      console.log(' Nueva entrega recibida:', data);
       if (data.id_tarea === id_tarea) {
         const nombreEstudiante = data.estudiante_nombre || 'Un estudiante';
         showToast.success(`Nueva entrega de ${nombreEstudiante}`, darkMode);
@@ -103,7 +96,6 @@ const ModalEntregas: React.FC<ModalEntregasProps> = ({
       }
     },
     'tarea_calificada': (data: any) => {
-      console.log(' Tarea calificada:', data);
       if (data.id_tarea === id_tarea) {
         fetchEntregas();
       }

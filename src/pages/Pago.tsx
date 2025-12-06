@@ -511,8 +511,6 @@ const Pago: React.FC = () => {
 
           // Mostrar cursos matriculados si existen
           if (data.cursos_matriculados && data.cursos_matriculados.length > 0) {
-            console.log('Cursos actuales del estudiante:', data.cursos_matriculados);
-
             // VALIDAR CURSO DUPLICADO: Verificar si ya está inscrito en este curso
             const yaInscritoEnEsteCurso = data.cursos_matriculados.some(
               (curso: any) => curso.id_tipo_curso === tipoCursoId
@@ -1411,9 +1409,6 @@ Realiza una nueva transferencia o verifica si ya tienes una solicitud previa reg
 
       // Guardar datos de la solicitud creada
       setSolicitudCreada(data);
-
-      console.log('Solicitud creada:', data);
-      console.log('Tipo de curso seleccionado:', tipoCursoId);
 
       // Verificar si hay promociones disponibles para este tipo de curso
       try {

@@ -226,15 +226,12 @@ const DetalleCursoDocente: React.FC<DetalleCursoDocenteProps> = ({
   // Escuchar eventos en tiempo real vía socket (módulos, tareas, entregas)
   useSocket({
     modulo_creado: (data: any) => {
-      console.log("Nuevo módulo creado:", data);
       if (data.id_curso === parseInt(id_curso || "0")) {
         // No mostrar notificación aquí porque el modal ya la muestra
         fetchModulos();
       }
     },
     nueva_tarea: (data: any) => {
-      console.log("Nueva tarea creada:", data);
-
       // No mostrar notificación aquí porque el modal ya la muestra
 
       // Actualizar contadores y lista de módulos inmediatamente
@@ -255,8 +252,6 @@ const DetalleCursoDocente: React.FC<DetalleCursoDocenteProps> = ({
       }
     },
     tarea_entregada_docente: (data: any) => {
-      console.log("Nueva entrega recibida:", data);
-
       // Mostrar notificación con nombre del estudiante
       const nombreEstudiante = data.estudiante_nombre || 'Un estudiante';
 
@@ -267,13 +262,10 @@ const DetalleCursoDocente: React.FC<DetalleCursoDocenteProps> = ({
 
       // Si el módulo está expandido, recargar sus tareas inmediatamente
       if (data.id_modulo && modulosExpandidos[data.id_modulo]) {
-        console.log(`Recargando tareas del módulo ${data.id_modulo}`);
         fetchTareasModulo(data.id_modulo);
       }
     },
     entrega_actualizada: (data: any) => {
-      console.log("Entrega actualizada:", data);
-
       // Mostrar notificación
       const nombreEstudiante = data.entrega?.estudiante_nombre && data.entrega?.estudiante_apellido
         ? `${data.entrega.estudiante_nombre} ${data.entrega.estudiante_apellido}`
@@ -286,7 +278,6 @@ const DetalleCursoDocente: React.FC<DetalleCursoDocenteProps> = ({
 
       // Si el módulo está expandido, recargar sus tareas inmediatamente
       if (data.id_modulo && modulosExpandidos[data.id_modulo]) {
-        console.log(`Recargando tareas del módulo ${data.id_modulo}`);
         fetchTareasModulo(data.id_modulo);
       }
     },

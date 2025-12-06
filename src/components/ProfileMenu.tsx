@@ -35,17 +35,14 @@ const ProfileMenu = ({ darkMode, toggleDarkMode, theme, userData, avatarColor = 
   // Listener WebSocket para actualización de foto en tiempo real
   useSocket({
     'profile_picture_updated': (data: any) => {
-      console.log('📸 Foto de perfil actualizada en tiempo real:', data);
       if (data.id_usuario === userData?.id_usuario) {
         if (data.deleted) {
           // Foto eliminada
           setCurrentFotoUrl(null);
-          console.log('✓ Foto eliminada correctamente');
         } else if (data.foto_perfil || data.foto_perfil_url) {
           // Foto actualizada - usar foto_perfil primero, luego foto_perfil_url como fallback
           const newPhotoUrl = data.foto_perfil || data.foto_perfil_url;
           setCurrentFotoUrl(newPhotoUrl);
-          console.log('✓ Foto actualizada correctamente:', newPhotoUrl);
         }
       }
     }
@@ -58,7 +55,6 @@ const ProfileMenu = ({ darkMode, toggleDarkMode, theme, userData, avatarColor = 
         try {
           // First try to use foto_perfil from userData if available
           if (userData.foto_perfil) {
-            console.log('📸 Actualizando foto desde userData:', userData.foto_perfil);
             setCurrentFotoUrl(userData.foto_perfil);
             return;
           }
@@ -89,7 +85,6 @@ const ProfileMenu = ({ darkMode, toggleDarkMode, theme, userData, avatarColor = 
         }
       } else if (userData?.foto_perfil) {
         // If we have userData but no id_usuario, still try to use foto_perfil
-        console.log('📸 Actualizando foto desde userData (sin id):', userData.foto_perfil);
         setCurrentFotoUrl(userData.foto_perfil);
       } else {
         setCurrentFotoUrl(null);
@@ -100,10 +95,8 @@ const ProfileMenu = ({ darkMode, toggleDarkMode, theme, userData, avatarColor = 
 
   // Función para recargar la foto cuando se actualiza
   const handlePhotoUpdate = async () => {
-    console.log('🔄 handlePhotoUpdate llamado');
     // Notificar al componente padre PRIMERO para que actualice userData
     if (onPhotoUpdated) {
-      console.log('📞 Llamando a onPhotoUpdated del padre');
       await onPhotoUpdated();
     }
     
@@ -117,7 +110,6 @@ const ProfileMenu = ({ darkMode, toggleDarkMode, theme, userData, avatarColor = 
         
         if (response.ok) {
           const data = await response.json();
-          console.log('📸 Foto recibida en handlePhotoUpdate:', data.foto_perfil);
           setCurrentFotoUrl(data.foto_perfil || null);
         }
       } catch (error) {
