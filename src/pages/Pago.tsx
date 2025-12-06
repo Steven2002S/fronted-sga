@@ -774,12 +774,10 @@ const Pago: React.FC = () => {
   };
 
   useSocket({
-    'cupos_actualizados': (data: any) => {
-      console.log('Cupos actualizados (WS) - Refrescando datos (debounced)', data);
+    'cupos_actualizados': () => {
       debouncedReload();
     },
-    'matricula_aprobada': (data: any) => {
-      console.log('Matrícula aprobada - Actualizando cupos y disponibilidad (debounced)', data);
+    'matricula_aprobada': () => {
       debouncedReload();
     },
     'solicitud_actualizada': () => {
@@ -2386,18 +2384,7 @@ Realiza una nueva transferencia o verifica si ya tienes una solicitud previa reg
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                               {/* Mostrar cupos por horario */}
                               {(() => {
-                                console.log(' Filtrando cupos para tipoCursoId:', tipoCursoId);
-                                console.log(' Cupos disponibles:', cuposDisponibles);
-                                console.log(' Detalle de cada cupo:', cuposDisponibles.map((c: any) => ({
-                                  id_tipo_curso: c.id_tipo_curso,
-                                  tipo: typeof c.id_tipo_curso,
-                                  nombre: c.tipo_curso_nombre,
-                                  horario: c.horario,
-                                  cupos: c.cupos_totales
-                                })));
                                 const cuposFiltrados = cuposDisponibles.filter((c: any) => c.id_tipo_curso === tipoCursoId);
-                                console.log('Cupos filtrados:', cuposFiltrados);
-                                console.log('Comparación:', cuposDisponibles.map((c: any) => `${c.id_tipo_curso} === ${tipoCursoId} ? ${c.id_tipo_curso === tipoCursoId}`));
 
                                 if (cuposFiltrados.length === 0) {
                                   return (
