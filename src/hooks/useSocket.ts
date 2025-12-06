@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 
-const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3000';
+const SOCKET_URL = (import.meta as any).env?.VITE_SOCKET_URL || (import.meta as any).env?.VITE_API_URL || 'http://localhost:3000';
 
 export const useSocket = (events: { [event: string]: (data: any) => void }, userId?: number, courseIds?: number[]) => {
   const socketRef = useRef<Socket | null>(null);
@@ -47,7 +47,7 @@ export const useSocket = (events: { [event: string]: (data: any) => void }, user
   useEffect(() => {
     // Solo crear el socket una vez
     if (!socketRef.current) {
-      socketRef.current = io(API_BASE, {
+      socketRef.current = io(SOCKET_URL, {
         transports: ['websocket', 'polling'],
         reconnection: true,
         reconnectionDelay: 1000,
