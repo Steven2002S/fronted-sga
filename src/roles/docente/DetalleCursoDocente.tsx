@@ -1435,10 +1435,6 @@ const DetalleCursoDocente: React.FC<DetalleCursoDocenteProps> = ({
                                     onClick={(e) => {
                                       e.preventDefault();
                                       e.stopPropagation();
-                                      console.log(
-                                        "Abriendo modal de entregas para tarea:",
-                                        tarea.id_tarea,
-                                      );
                                       setTareaSeleccionada({
                                         id: tarea.id_tarea,
                                         nombre: tarea.titulo,
@@ -1446,7 +1442,6 @@ const DetalleCursoDocente: React.FC<DetalleCursoDocenteProps> = ({
                                         ponderacion: tarea.ponderacion,
                                       });
                                       setShowModalEntregas(true);
-                                      console.log("Modal abierto:", true);
                                     }}
                                     style={{
                                       background:

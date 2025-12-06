@@ -418,8 +418,6 @@ const ModalCalificaciones: React.FC<ModalCalificacionesProps> = ({
       // Debug: Verificar datos antes de crear Excel
       console.log("Generando Excel...");
       console.log("Total estudiantes:", estudiantes.length);
-      console.log("Módulos disponibles:", modulos);
-      console.log("Peso por módulo:", pesoPorModulo);
 
       // Hoja 2: Promedios por Módulo (sobre 10 puntos)
       const datosModulos = estudiantes.map((est) => {
