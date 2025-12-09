@@ -154,28 +154,37 @@ const Calificaciones: React.FC<{ darkMode: boolean }> = ({ darkMode: darkModePro
               ? calificacionesData.calificaciones
               : [];
 
-            // Calcular promedio (solo calificaciones válidas)
-            const calificacionesValidas = calificaciones
-              .filter(
-                (cal: Calificacion) =>
-                  cal.nota !== null && cal.nota !== undefined,
-              )
-              .map((cal: Calificacion) => ({
-                ...cal,
-                nota: parseFloat(cal.nota as any) || 0,
-                nota_maxima: parseFloat(cal.nota_maxima as any) || 20,
-              }));
-            const totalNotas = calificacionesValidas.reduce(
-              (sum: number, cal: Calificacion) => sum + cal.nota,
-              0,
-            );
-            const promedio =
-              calificacionesValidas.length > 0
-                ? totalNotas / calificacionesValidas.length
-                : 0;
+            // El backend ya devuelve el resumen calculado
+            const resumen = calificacionesData.resumen || {};
 
-            // Agrupar calificaciones por módulo y calcular promedio ponderado
-            const modulos = agruparPorModulo(calificaciones);
+            // Usar el promedio directo del backend
+            const promedio = resumen.promedio_global !== undefined
+              ? parseFloat(resumen.promedio_global)
+              : 0;
+
+            // Usar el desglose de módulos del backend
+            let modulos: ModuloConPromedio[] = [];
+
+            if (resumen.desglose_modulos && Array.isArray(resumen.desglose_modulos)) {
+              modulos = resumen.desglose_modulos.map((m: any) => {
+                // Filtrar tareas de este módulo para mostrarlas en el detalle
+                const tareasModulo = calificaciones.filter((c: any) => c.modulo_nombre === m.nombre_modulo);
+
+                return {
+                  id_modulo: m.id_modulo,
+                  nombre: m.nombre_modulo,
+                  orden: m.id_modulo,
+                  promedio_ponderado: parseFloat(m.promedio_modulo_sobre_10),
+                  total_tareas: m.total_tareas,
+                  tareas_calificadas: m.total_tareas,
+                  promedios_publicados: true,
+                  calificaciones: tareasModulo
+                };
+              });
+            } else {
+              // Respaldo por si falla la estructura nueva
+              modulos = agruparPorModulo(calificaciones);
+            }
 
             cursosConCalificacionesData.push({
               curso,
@@ -1201,8 +1210,21 @@ const Calificaciones: React.FC<{ darkMode: boolean }> = ({ darkMode: darkModePro
                                             /
                                             {parseFloat(
                                               calificacion.nota_maxima as any,
-                                            ) || 20}
+                                            ) || 10}
                                           </span>
+                                          {calificacion.ponderacion && (
+                                            <span
+                                              style={{
+                                                color: theme.textMuted,
+                                                fontSize: "0.75rem",
+                                                marginLeft: "0.5rem",
+                                                borderLeft: `1px solid ${theme.border}`,
+                                                paddingLeft: "0.5rem"
+                                              }}
+                                            >
+                                              Peso: {calificacion.ponderacion}pts
+                                            </span>
+                                          )}
                                         </div>
                                       </div>
 
@@ -1271,8 +1293,8 @@ const Calificaciones: React.FC<{ darkMode: boolean }> = ({ darkMode: darkModePro
                                                   0) /
                                                   (parseFloat(
                                                     calificacion.nota_maxima as any,
-                                                  ) || 20)) *
-                                                20,
+                                                  ) || 10)) *
+                                                10,
                                               ) + "20",
                                             borderRadius: "0.5rem",
                                             padding: "0.2rem 0.5rem",
@@ -1285,8 +1307,8 @@ const Calificaciones: React.FC<{ darkMode: boolean }> = ({ darkMode: darkModePro
                                                   0) /
                                                   (parseFloat(
                                                     calificacion.nota_maxima as any,
-                                                  ) || 20)) *
-                                                20,
+                                                  ) || 10)) *
+                                                10,
                                               ),
                                               fontSize: "0.75rem",
                                               fontWeight: "600",
@@ -1297,8 +1319,8 @@ const Calificaciones: React.FC<{ darkMode: boolean }> = ({ darkMode: darkModePro
                                                 0) /
                                                 (parseFloat(
                                                   calificacion.nota_maxima as any,
-                                                ) || 20)) *
-                                              20,
+                                                ) || 10)) *
+                                              10,
                                             )}
                                           </span>
                                         </div>

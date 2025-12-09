@@ -27,6 +27,7 @@ interface Tarea {
   descripcion: string;
   fecha_limite: string;
   nota_maxima: number;
+  ponderacion: number;
   permite_archivo: boolean;
   formatos_permitidos: string;
   tamano_maximo_mb: number;
@@ -569,7 +570,7 @@ const DetalleCursoEstudiante: React.FC<DetalleCursoEstudianteProps> = ({ darkMod
                                 </span>
                                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.25em' }}>
                                   <FileText size={13} color={theme.textMuted} />
-                                  Nota máx: {tarea.nota_maxima}
+                                  Nota: {Number(tarea.nota_maxima).toFixed(2)} | Peso: {tarea.ponderacion}pts
                                 </span>
                               </div>
                             </div>
