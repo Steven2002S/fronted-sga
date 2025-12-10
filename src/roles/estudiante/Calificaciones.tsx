@@ -701,7 +701,7 @@ const Calificaciones: React.FC<{ darkMode: boolean }> = ({ darkMode: darkModePro
                           fontWeight: "800",
                         }}
                       >
-                        {modulos.every(m => m.promedios_publicados) ? promedio.toFixed(1) : "Parcial"}
+                        {modulos.every(m => m.promedios_publicados) ? promedio.toFixed(2) : "Parcial"}
                       </div>
                       <div
                         style={{
@@ -954,7 +954,7 @@ const Calificaciones: React.FC<{ darkMode: boolean }> = ({ darkMode: darkModePro
                                         lineHeight: 1,
                                       }}
                                     >
-                                      {modulo.promedio_ponderado.toFixed(1)}
+                                      {modulo.promedio_ponderado.toFixed(2)}
                                     </div>
                                     <div
                                       style={{
@@ -1096,7 +1096,7 @@ const Calificaciones: React.FC<{ darkMode: boolean }> = ({ darkMode: darkModePro
                                           lineHeight: 1,
                                         }}
                                       >
-                                        {modulo.promedio_ponderado.toFixed(1)}
+                                        {modulo.promedio_ponderado.toFixed(2)}
                                       </div>
                                       <div
                                         style={{

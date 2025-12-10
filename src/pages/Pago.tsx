@@ -989,14 +989,36 @@ const Pago: React.FC = () => {
   const handleDocumentoIdentificacionUpload = (file: File | null) => {
     if (isBlocked) return;
     if (!file) { setDocumentoIdentificacion(null); return; }
-    const allowed = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+    const allowed = ['application/pdf'];
     const maxBytes = 5 * 1024 * 1024; // 5MB
     if (!allowed.includes(file.type)) {
-      alert('Formato no permitido. Usa PDF, JPG, PNG o WEBP.');
+      toast.error('Solo se aceptan archivos PDF', {
+        duration: 4000,
+        icon: '⚠️',
+        style: {
+          background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%)',
+          border: '2px solid rgba(239, 68, 68, 0.4)',
+          color: '#ef4444',
+          backdropFilter: 'blur(10px)',
+          fontSize: '0.95rem',
+          padding: '20px 24px'
+        }
+      });
       return;
     }
     if (file.size > maxBytes) {
-      alert('El archivo supera 5MB. Por favor, sube un archivo más pequeño.');
+      toast.error('El archivo supera 5MB. Por favor, sube un archivo más pequeño.', {
+        duration: 4000,
+        icon: '⚠️',
+        style: {
+          background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%)',
+          border: '2px solid rgba(239, 68, 68, 0.4)',
+          color: '#ef4444',
+          backdropFilter: 'blur(10px)',
+          fontSize: '0.95rem',
+          padding: '20px 24px'
+        }
+      });
       return;
     }
     setDocumentoIdentificacion(file);
@@ -1005,14 +1027,36 @@ const Pago: React.FC = () => {
   const handleDocumentoEstatusLegalUpload = (file: File | null) => {
     if (isBlocked) return;
     if (!file) { setDocumentoEstatusLegal(null); return; }
-    const allowed = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+    const allowed = ['application/pdf'];
     const maxBytes = 5 * 1024 * 1024; // 5MB
     if (!allowed.includes(file.type)) {
-      alert('Formato no permitido. Usa PDF, JPG, PNG o WEBP.');
+      toast.error('Solo se aceptan archivos PDF', {
+        duration: 4000,
+        icon: '⚠️',
+        style: {
+          background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%)',
+          border: '2px solid rgba(239, 68, 68, 0.4)',
+          color: '#ef4444',
+          backdropFilter: 'blur(10px)',
+          fontSize: '0.95rem',
+          padding: '20px 24px'
+        }
+      });
       return;
     }
     if (file.size > maxBytes) {
-      alert('El archivo supera 5MB. Por favor, sube un archivo más pequeño.');
+      toast.error('El archivo supera 5MB. Por favor, sube un archivo más pequeño.', {
+        duration: 4000,
+        icon: '⚠️',
+        style: {
+          background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%)',
+          border: '2px solid rgba(239, 68, 68, 0.4)',
+          color: '#ef4444',
+          backdropFilter: 'blur(10px)',
+          fontSize: '0.95rem',
+          padding: '20px 24px'
+        }
+      });
       return;
     }
     setDocumentoEstatusLegal(file);
@@ -1021,14 +1065,36 @@ const Pago: React.FC = () => {
   const handleCertificadoCosmetologiaUpload = (file: File | null) => {
     if (isBlocked) return;
     if (!file) { setCertificadoCosmetologia(null); return; }
-    const allowed = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+    const allowed = ['application/pdf'];
     const maxBytes = 5 * 1024 * 1024;
     if (!allowed.includes(file.type)) {
-      alert('Formato no permitido. Usa PDF, JPG, PNG o WEBP.');
+      toast.error('Solo se aceptan archivos PDF', {
+        duration: 4000,
+        icon: '⚠️',
+        style: {
+          background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%)',
+          border: '2px solid rgba(239, 68, 68, 0.4)',
+          color: '#ef4444',
+          backdropFilter: 'blur(10px)',
+          fontSize: '0.95rem',
+          padding: '20px 24px'
+        }
+      });
       return;
     }
     if (file.size > maxBytes) {
-      alert('El archivo supera 5MB. Por favor, sube un archivo más pequeño.');
+      toast.error('El archivo supera 5MB. Por favor, sube un archivo más pequeño.', {
+        duration: 4000,
+        icon: '⚠️',
+        style: {
+          background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%)',
+          border: '2px solid rgba(239, 68, 68, 0.4)',
+          color: '#ef4444',
+          backdropFilter: 'blur(10px)',
+          fontSize: '0.95rem',
+          padding: '20px 24px'
+        }
+      });
       return;
     }
     setCertificadoCosmetologia(file);
@@ -3858,7 +3924,7 @@ Realiza una nueva transferencia o verifica si ya tienes una solicitud previa reg
                                 <input
                                   id="documentoIdentificacionInput"
                                   type="file"
-                                  accept=".pdf,image/jpeg,image/png,image/webp"
+                                  accept=".pdf"
                                   onChange={(e) => handleDocumentoIdentificacionUpload(e.target.files?.[0] || null)}
                                   style={{ display: 'none' }}
                                 />
@@ -3945,7 +4011,7 @@ Realiza una nueva transferencia o verifica si ya tienes una solicitud previa reg
                                       color: theme === 'dark' ? '#9ca3af' : '#4b5563',
                                       fontSize: '0.75rem'
                                     }}>
-                                      PDF, JPG, PNG, WEBP (Máx. 5MB)
+                                      PDF (Máx. 5MB)
                                     </p>
                                   </div>
                                 )}
@@ -4022,7 +4088,7 @@ Realiza una nueva transferencia o verifica si ya tienes una solicitud previa reg
                                   <input
                                     id="documentoEstatusLegalInput"
                                     type="file"
-                                    accept=".pdf,image/jpeg,image/png,image/webp"
+                                    accept=".pdf"
                                     onChange={(e) => handleDocumentoEstatusLegalUpload(e.target.files?.[0] || null)}
                                     style={{ display: 'none' }}
                                   />
@@ -4109,7 +4175,7 @@ Realiza una nueva transferencia o verifica si ya tienes una solicitud previa reg
                                         color: theme === 'dark' ? '#9ca3af' : '#4b5563',
                                         fontSize: '0.75rem'
                                       }}>
-                                        PDF, JPG, PNG, WEBP (Máx. 5MB)
+                                        PDF (Máx. 5MB)
                                       </p>
                                     </div>
                                   )}
@@ -4291,7 +4357,7 @@ Realiza una nueva transferencia o verifica si ya tienes una solicitud previa reg
                         <input
                           id="certificadoCosmetologiaInput"
                           type="file"
-                          accept=".pdf,image/jpeg,image/png,image/webp"
+                          accept=".pdf"
                           onChange={(e) => handleCertificadoCosmetologiaUpload(e.target.files?.[0] || null)}
                           style={{ display: 'none' }}
                         />
@@ -4378,7 +4444,7 @@ Realiza una nueva transferencia o verifica si ya tienes una solicitud previa reg
                               color: theme === 'dark' ? '#9ca3af' : '#4b5563',
                               fontSize: '0.75rem'
                             }}>
-                              PDF, JPG, PNG, WEBP (Máx. 5MB)
+                              PDF (Máx. 5MB)
                             </p>
                           </div>
                         )}

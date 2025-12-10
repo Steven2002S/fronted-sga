@@ -713,7 +713,7 @@ const CalificacionesCurso: React.FC<ModalCalificacionesProps> = ({ darkMode }) =
         const rowData: any[] = [index + 1, est.apellido, est.nombre]; // Agregar índice numérico
 
         // Calificaciones
-        Object.keys(tareasPorModulo).sort().forEach((moduloNombre) => {
+        modulosConTareas.forEach((moduloNombre) => {
           const tareasDelModulo = tareasPorModulo[moduloNombre];
           tareasDelModulo.forEach((tarea) => {
             const nota = est.calificaciones[tarea.id_tarea];
