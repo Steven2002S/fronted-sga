@@ -38,6 +38,7 @@ import Reportes from './Reportes';
 import GestionTiposCurso from './GestionTiposCurso';
 import ControlUsuarios from './ControlUsuarios';
 import Perfil from './Perfil';
+import CambiarPasswordModal from '../../components/CambiarPasswordModal';
 
 const PanelAdministrativos = () => {
   const { isMobile, isSmallScreen } = useBreakpoints();
@@ -100,6 +101,15 @@ const PanelAdministrativos = () => {
   useEffect(() => {
     localStorage.setItem('admin-sidebar-collapsed', JSON.stringify(sidebarCollapsed));
   }, [sidebarCollapsed]);
+
+  // Manejo de cambio de contraseña obligatorio
+  const [showForcedPasswordModal, setShowForcedPasswordModal] = useState(false);
+
+  useEffect(() => {
+    if (userData && (userData as any).needs_password_reset) {
+      setShowForcedPasswordModal(true);
+    }
+  }, [userData]);
 
   // Función para alternar sidebar
   const toggleSidebar = () => {
@@ -538,6 +548,13 @@ const PanelAdministrativos = () => {
           </div>
         </div>
       </div>
+      <CambiarPasswordModal
+        isOpen={showForcedPasswordModal}
+        onClose={() => { }} // No permitir cerrar si es obligatorio
+        isRequired={true}
+        rol="administrativo"
+        isFirstLogin={true}
+      />
     </>
   );
 };

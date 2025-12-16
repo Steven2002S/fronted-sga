@@ -883,6 +883,23 @@ const AdministradoresPanel: React.FC = () => {
             </button>
           </div>
 
+          <div style={{
+            gridColumn: '1 / -1',
+            background: darkMode ? 'rgba(59, 130, 246, 0.1)' : '#eff6ff',
+            border: `1px solid ${darkMode ? 'rgba(59, 130, 246, 0.2)' : '#bfdbfe'}`,
+            borderRadius: '0.5rem',
+            padding: '0.75rem',
+            display: 'flex',
+            gap: '0.75rem',
+            alignItems: 'start',
+            marginTop: '0.5rem'
+          }}>
+            <Shield size={18} color={darkMode ? '#60a5fa' : '#3b82f6'} style={{ flexShrink: 0, marginTop: '2px' }} />
+            <div style={{ fontSize: '0.8125rem', color: darkMode ? '#bfdbfe' : '#1e40af', lineHeight: '1.4' }}>
+              <strong>Nota de Seguridad:</strong> La contraseña ingresada será enviada por correo al nuevo administrativo. El sistema le solicitará cambiarla obligatoriamente en su primer inicio de sesión.
+            </div>
+          </div>
+
           {/* Permisos Grid */}
           {/* Permisos section eliminado */}
         </div>,

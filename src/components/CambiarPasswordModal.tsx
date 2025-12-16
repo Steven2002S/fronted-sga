@@ -10,7 +10,7 @@ interface CambiarPasswordModalProps {
   isOpen: boolean;
   onClose: () => void;
   isRequired?: boolean; // Si es true, es el primer cambio obligatorio
-  rol: 'estudiante' | 'docente';
+  rol: 'estudiante' | 'docente' | 'administrativo';
   isFirstLogin?: boolean; // Si es true, es primera vez en el sistema (no reset por admin)
 }
 
