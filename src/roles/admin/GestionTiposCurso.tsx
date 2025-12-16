@@ -51,7 +51,7 @@ const GestionTiposCurso: React.FC = () => {
       const saved = localStorage.getItem('admin-dark-mode');
       setDarkMode(saved !== null ? JSON.parse(saved) : true);
     };
-    
+
     window.addEventListener('storage', handleStorageChange);
     // También escuchar cambios locales
     const interval = setInterval(() => {
@@ -61,7 +61,7 @@ const GestionTiposCurso: React.FC = () => {
         setDarkMode(newMode);
       }
     }, 100);
-    
+
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       clearInterval(interval);
@@ -792,7 +792,7 @@ const GestionTiposCurso: React.FC = () => {
                           style={{
                             background: darkMode ? 'rgba(59,130,246,0.12)' : 'rgba(59,130,246,0.16)',
                             border: '1px solid rgba(59,130,246,0.4)',
-                              color: editActionColor,
+                            color: editActionColor,
                             padding: '6px 0.625rem',
                             borderRadius: 8,
                             cursor: 'pointer',
@@ -1034,7 +1034,7 @@ const GestionTiposCurso: React.FC = () => {
             onClick={(e) => e.stopPropagation()}
             style={{
               position: 'relative',
-              background: darkMode 
+              background: darkMode
                 ? 'linear-gradient(135deg, rgba(0,0,0,0.9) 0%, rgba(26,26,46,0.9) 100%)'
                 : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.95) 100%)',
               border: '1px solid rgba(239, 68, 68, 0.2)',

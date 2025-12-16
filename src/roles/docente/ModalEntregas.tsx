@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
-  X, Download, Users, Clock, FileCheck, Award, Search, FileText, CheckCircle, BarChart3, AlertCircle, User, Calendar
+  X, Download, Users, Clock, FileCheck, Award, Search, FileText, CheckCircle, BarChart3, AlertCircle, User, Calendar, Maximize2, Minimize2
 } from 'lucide-react';
 import axios from 'axios';
 import { showToast } from '../../config/toastConfig';
@@ -59,6 +59,7 @@ const ModalEntregas: React.FC<ModalEntregasProps> = ({
     url: string;
     tipo: string;
   } | null>(null);
+  const [isPreviewFullscreen, setIsPreviewFullscreen] = useState(false);
   const [filtro, setFiltro] = useState<'todas' | 'pendientes' | 'calificadas'>('todas');
   const [busqueda, setBusqueda] = useState('');
   const [filteredEntregas, setFilteredEntregas] = useState<Entrega[]>([]);
@@ -302,7 +303,7 @@ const ModalEntregas: React.FC<ModalEntregasProps> = ({
 
       const nombrePersonalizado = `${apellidoLimpio}_${nombreLimpio}_${tareaLimpia}.${extension}`;
 
-           // Usar URL de Cloudinary directamente
+      // Usar URL de Cloudinary directamente
       if (!entrega.archivo_url) {
         throw new Error('No hay archivo disponible');
       }
@@ -344,7 +345,7 @@ const ModalEntregas: React.FC<ModalEntregasProps> = ({
       }, 100);
     }
   };
-  
+
   const abrirModalCalificar = (entrega: Entrega) => {
     setEntregaSeleccionada(entrega);
     setNotaInput(entrega.calificacion?.toString() || '');
@@ -1475,12 +1476,12 @@ const ModalEntregas: React.FC<ModalEntregasProps> = ({
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'rgba(0, 0, 0, 0.65)',
+            background: 'rgba(0, 0, 0, 0.85)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 9999999,
-            padding: '2em',
+            padding: isPreviewFullscreen ? '0' : '2em',
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
             animation: 'fadeIn 0.2s ease-out'
@@ -1491,20 +1492,24 @@ const ModalEntregas: React.FC<ModalEntregasProps> = ({
                 : 'rgba(255, 255, 255, 0.95)',
               backdropFilter: 'blur(16px)',
               WebkitBackdropFilter: 'blur(16px)',
-              borderRadius: '0.75rem',
-              padding: '1.5rem',
-              maxWidth: '32rem',
-              width: '90%',
-              maxHeight: '80vh',
-              overflowY: 'auto',
-              border: `1px solid ${darkMode ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)'}`,
+              borderRadius: isPreviewFullscreen ? '0' : '0.75rem',
+              padding: isPreviewFullscreen ? '1rem' : '1.5rem',
+              maxWidth: isPreviewFullscreen ? '100%' : '50rem', // Más ancho por defecto
+              width: isPreviewFullscreen ? '100%' : '90%',
+              height: isPreviewFullscreen ? '100vh' : 'auto',
+              maxHeight: isPreviewFullscreen ? '100vh' : '90vh',
+              display: 'flex',
+              flexDirection: 'column',
+              overflowY: 'hidden', // Evitar scroll en el contenedor principal
+              border: isPreviewFullscreen ? 'none' : `1px solid ${darkMode ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)'}`,
               boxShadow: darkMode
                 ? '0 10px 30px rgba(0, 0, 0, 0.4)'
                 : '0 10px 30px rgba(0, 0, 0, 0.1)',
-              animation: 'scaleIn 0.2s ease-out'
+              animation: 'scaleIn 0.2s ease-out',
+              transition: 'all 0.3s ease'
             }}>
               {/* Header */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexShrink: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <div style={{
                     width: '2rem',
@@ -1526,54 +1531,86 @@ const ModalEntregas: React.FC<ModalEntregasProps> = ({
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={() => {
-                    window.URL.revokeObjectURL(archivoPreview.url);
-                    setArchivoPreview(null);
-                  }}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: theme.textSecondary,
-                    cursor: 'pointer',
-                    padding: '0.5rem',
-                    borderRadius: '0.5rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'transparent';
-                  }}
-                >
-                  <X size={18} />
-                </button>
-              </div>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  {/* Botón Pantalla Completa */}
+                  <button
+                    onClick={() => setIsPreviewFullscreen(!isPreviewFullscreen)}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: theme.textSecondary,
+                      cursor: 'pointer',
+                      padding: '0.5rem',
+                      borderRadius: '0.5rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.2s ease'
+                    }}
+                    title={isPreviewFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'transparent';
+                    }}
+                  >
+                    {isPreviewFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+                  </button>
 
-              {/* Información del archivo */}
-              <div style={{
-                background: darkMode ? 'rgba(59, 130, 246, 0.1)' : 'rgba(59, 130, 246, 0.05)',
-                border: '1px solid rgba(59, 130, 246, 0.2)',
-                borderRadius: '0.5rem',
-                padding: '0.75rem',
-                marginBottom: '1rem'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <FileText size={18} color="#3b82f6" />
-                  <div>
-                    <p style={{ color: theme.textPrimary, fontSize: '0.875rem', fontWeight: '600', margin: 0 }}>
-                      {archivoPreview.entrega.archivo_nombre}
-                    </p>
-                    <p style={{ color: theme.textMuted, fontSize: '0.75rem', margin: 0 }}>
-                      {new Date(archivoPreview.entrega.fecha_entrega).toLocaleDateString('es-ES')} {new Date(archivoPreview.entrega.fecha_entrega).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit', hour12: false })}
-                    </p>
-                  </div>
+                  <button
+                    onClick={() => {
+                      window.URL.revokeObjectURL(archivoPreview.url);
+                      setArchivoPreview(null);
+                      setIsPreviewFullscreen(false); // Reset al cerrar
+                    }}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: theme.textSecondary,
+                      cursor: 'pointer',
+                      padding: '0.5rem',
+                      borderRadius: '0.5rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'transparent';
+                    }}
+                  >
+                    <X size={18} />
+                  </button>
                 </div>
               </div>
+
+              {/* Información del archivo (Ocultar en pantalla completa para dar más espacio) */}
+              {!isPreviewFullscreen && (
+                <div style={{
+                  background: darkMode ? 'rgba(59, 130, 246, 0.1)' : 'rgba(59, 130, 246, 0.05)',
+                  border: '1px solid rgba(59, 130, 246, 0.2)',
+                  borderRadius: '0.5rem',
+                  padding: '0.75rem',
+                  marginBottom: '1rem',
+                  flexShrink: 0
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <FileText size={18} color="#3b82f6" />
+                    <div>
+                      <p style={{ color: theme.textPrimary, fontSize: '0.875rem', fontWeight: '600', margin: 0 }}>
+                        {archivoPreview.entrega.archivo_nombre}
+                      </p>
+                      <p style={{ color: theme.textMuted, fontSize: '0.75rem', margin: 0 }}>
+                        {new Date(archivoPreview.entrega.fecha_entrega).toLocaleDateString('es-ES')} {new Date(archivoPreview.entrega.fecha_entrega).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Vista previa */}
               <div style={{
@@ -1581,10 +1618,12 @@ const ModalEntregas: React.FC<ModalEntregasProps> = ({
                 borderRadius: '0.5rem',
                 padding: '0.75rem',
                 marginBottom: '1rem',
-                minHeight: '16rem',
+                flexGrow: 1, // Ocupar espacio restante
+                minHeight: isPreviewFullscreen ? '0' : '25rem', // Altura min base
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                overflow: 'hidden'
               }}>
                 {archivoPreview.tipo.startsWith('image/') ? (
                   // Vista previa de imagen
@@ -1593,7 +1632,7 @@ const ModalEntregas: React.FC<ModalEntregasProps> = ({
                     alt="Preview"
                     style={{
                       maxWidth: '100%',
-                      maxHeight: '20rem',
+                      maxHeight: '100%', // Ajustar al contenedor
                       borderRadius: '0.375rem',
                       objectFit: 'contain'
                     }}
@@ -1604,7 +1643,7 @@ const ModalEntregas: React.FC<ModalEntregasProps> = ({
                     src={archivoPreview.url}
                     style={{
                       width: '100%',
-                      height: '20rem',
+                      height: '100%',
                       border: 'none',
                       borderRadius: '0.5em'
                     }}
@@ -1657,7 +1696,7 @@ const ModalEntregas: React.FC<ModalEntregasProps> = ({
                   }}
                   style={{
                     background: archivoPreview.entrega.calificacion !== undefined && archivoPreview.entrega.calificacion !== null
-                      ? darkMode 
+                      ? darkMode
                         ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.2) 100%)'
                         : 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.15) 100%)'
                       : 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',

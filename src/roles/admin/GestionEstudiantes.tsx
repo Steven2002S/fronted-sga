@@ -2,7 +2,7 @@ import type { CSSProperties, ReactElement } from 'react';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  Search, Eye, GraduationCap, Calendar, Phone, MapPin, User, X, Grid, List, ChevronLeft, ChevronRight, Mail, IdCard, Download, FileText, Shield, Sheet, RefreshCcw
+  Search, Eye, GraduationCap, Calendar, Phone, MapPin, User, X, Grid, List, ChevronLeft, ChevronRight, Mail, IdCard, Download, FileText, Shield, Sheet, RefreshCcw, Power, AlertCircle
 } from 'lucide-react';
 import { StyledSelect } from '../../components/StyledSelect';
 import GlassEffect from '../../components/GlassEffect';
@@ -158,12 +158,52 @@ const GestionEstudiantes = () => {
   const [filterEstado, setFilterEstado] = useState('todos');
   const [filterEstadoCurso, setFilterEstadoCurso] = useState('todos');
   const [filterTipoCurso, setFilterTipoCurso] = useState('todos');
-  const [tiposCurso, setTiposCurso] = useState<{id: number, nombre: string}[]>([]);
+  const [tiposCurso, setTiposCurso] = useState<{ id: number, nombre: string }[]>([]);
   const [page, setPage] = useState(1);
   const [limit] = useState(9); // 9 estudiantes por página
   const [totalCount, setTotalCount] = useState(0);
   const [totalActivos, setTotalActivos] = useState(0);
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+
+  // Estado para confirmación de cambio de estado
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [accionConfirmar, setAccionConfirmar] = useState<{ tipo: 'activar' | 'desactivar', estudiante: Estudiante } | null>(null);
+
+  const confirmarCambioEstado = (estudiante: Estudiante) => {
+    const nuevoEstado = estudiante.estado === 'activo' ? 'desactivar' : 'activar';
+    setAccionConfirmar({ tipo: nuevoEstado, estudiante });
+    setShowConfirmModal(true);
+  };
+
+  const ejecutarAccion = async () => {
+    if (!accionConfirmar) return;
+
+    try {
+      const token = sessionStorage.getItem('auth_token');
+      const nuevoEstado = accionConfirmar.tipo === 'activar' ? 'activo' : 'inactivo';
+
+      const response = await fetch(`${API_BASE}/api/usuarios/${accionConfirmar.estudiante.id_usuario}/estado`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ estado: nuevoEstado })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al cambiar estado');
+      }
+
+      showToast.success(`Estudiante ${accionConfirmar.tipo === 'activar' ? 'activado' : 'inactivado'} correctamente`, darkMode);
+      await fetchEstudiantes(); // Recargar lista
+      setShowConfirmModal(false);
+      setAccionConfirmar(null);
+    } catch (err: any) {
+      showToast.error(err?.message || 'Error al cambiar estado', darkMode);
+    }
+  };
 
   // Función para obtener estudiantes
   const fetchEstudiantes = async (options?: { successMessage?: string }) => {
@@ -194,7 +234,7 @@ const GestionEstudiantes = () => {
       const data = await response.json();
       const headerVal = response.headers.get('X-Total-Count');
       const totalHeader = headerVal !== null ? Number(headerVal) : NaN;
-      
+
       // Leer total de activos del header
       const activosHeader = response.headers.get('X-Total-Activos');
       const totalActivosVal = activosHeader !== null ? Number(activosHeader) : 0;
@@ -474,17 +514,17 @@ const GestionEstudiantes = () => {
                 try {
                   showToast.info('Generando reporte de estudiantes...', darkMode);
                   const token = sessionStorage.getItem('auth_token');
-                  
+
                   // Construir URL con filtros
                   const params = new URLSearchParams();
                   if (searchTerm) params.set('search', searchTerm);
                   if (filterEstado !== 'todos') params.set('estado', filterEstado);
                   if (filterEstadoCurso !== 'todos') params.set('estadoCurso', filterEstadoCurso);
                   if (filterTipoCurso !== 'todos') params.set('tipoCurso', filterTipoCurso);
-                  
+
                   const queryString = params.toString();
                   const url = `${API_BASE}/api/estudiantes/reporte/excel${queryString ? '?' + queryString : ''}`;
-                  
+
                   const response = await fetch(url, {
                     headers: {
                       Authorization: `Bearer ${token}`
@@ -738,6 +778,47 @@ const GestionEstudiantes = () => {
                     >
                       <Eye size={12} color={viewActionColor} /> Ver Detalles
                     </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        confirmarCambioEstado(estudiante);
+                      }}
+                      style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.375rem',
+                        padding: '6px 0.75rem',
+                        background: estudiante.estado === 'activo'
+                          ? pick('rgba(239, 68, 68, 0.12)', 'rgba(239, 68, 68, 0.1)')
+                          : pick('rgba(16, 185, 129, 0.12)', 'rgba(16, 185, 129, 0.1)'),
+                        border: `1px solid ${estudiante.estado === 'activo'
+                          ? pick('rgba(239,68,68,0.24)', 'rgba(239,68,68,0.3)')
+                          : pick('rgba(16,185,129,0.24)', 'rgba(16,185,129,0.3)')}`,
+                        borderRadius: '0.5rem',
+                        color: estudiante.estado === 'activo'
+                          ? pick('#ef4444', '#f87171')
+                          : pick('#10b981', '#34d399'),
+                        fontSize: '0.7rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        marginTop: '0.5rem'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = estudiante.estado === 'activo'
+                          ? pick('rgba(239,68,68,0.18)', 'rgba(239, 68, 68, 0.2)')
+                          : pick('rgba(16,185,129,0.18)', 'rgba(16, 185, 129, 0.2)');
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = estudiante.estado === 'activo'
+                          ? pick('rgba(239, 68, 68, 0.12)', 'rgba(239, 68, 68, 0.1)')
+                          : pick('rgba(16, 185, 129, 0.12)', 'rgba(16, 185, 129, 0.1)');
+                      }}
+                    >
+                      <Power size={12} /> {estudiante.estado === 'activo' ? 'Inactivar' : 'Activar'}
+                    </button>
                   </div>
                 </div>
               );
@@ -974,6 +1055,32 @@ const GestionEstudiantes = () => {
                           >
                             <Eye size={14} color={theme.tableActionText} />
                             Ver
+                          </button>
+                          <button
+                            onClick={() => confirmarCambioEstado(estudiante)}
+                            style={{
+                              background: estudiante.estado === 'activo'
+                                ? pick('rgba(239, 68, 68, 0.12)', 'rgba(239, 68, 68, 0.1)')
+                                : pick('rgba(16, 185, 129, 0.12)', 'rgba(16, 185, 129, 0.1)'),
+                              border: `1px solid ${estudiante.estado === 'activo'
+                                ? pick('rgba(239,68,68,0.24)', 'rgba(239,68,68,0.3)')
+                                : pick('rgba(16,185,129,0.24)', 'rgba(16,185,129,0.3)')}`,
+                              color: estudiante.estado === 'activo'
+                                ? pick('#ef4444', '#f87171')
+                                : pick('#10b981', '#34d399'),
+                              padding: '8px 0.75rem',
+                              borderRadius: '0.5rem',
+                              cursor: 'pointer',
+                              fontSize: '0.8rem',
+                              fontWeight: '500',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.375rem',
+                              margin: '0 auto'
+                            }}
+                            title={estudiante.estado === 'activo' ? 'Inactivar' : 'Activar'}
+                          >
+                            <Power size={14} />
                           </button>
                         </td>
                       </tr>
@@ -1592,6 +1699,129 @@ const GestionEstudiantes = () => {
         onComplete={() => setShowLoadingModal(false)}
         colorTheme="red"
       />
+      {/* Modal de Confirmación */}
+      {showConfirmModal && accionConfirmar && createPortal(
+        <div
+          className="modal-overlay"
+          onClick={() => setShowConfirmModal(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100vw',
+            height: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 100000,
+            backdropFilter: 'blur(8px)',
+            background: 'rgba(0, 0, 0, 0.5)',
+            padding: '1rem'
+          }}
+        >
+          <div
+            className="modal-content"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: theme.contentBackground,
+              borderRadius: isMobile ? 14 : 16,
+              padding: isMobile ? '1.5rem' : '2rem',
+              maxWidth: 400,
+              width: '100%',
+              boxShadow: theme.cardShadow,
+              border: `1px solid ${theme.surfaceBorder}`,
+              textAlign: 'center',
+              animation: 'scaleIn 0.2s ease-out'
+            }}
+          >
+            <div style={{
+              width: 56,
+              height: 56,
+              borderRadius: '50%',
+              background: accionConfirmar.tipo === 'activar'
+                ? 'rgba(16, 185, 129, 0.1)'
+                : 'rgba(239, 68, 68, 0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 1.25rem'
+            }}>
+              {accionConfirmar.tipo === 'activar' ? (
+                <Power size={28} color="#10b981" />
+              ) : (
+                <AlertCircle size={28} color="#ef4444" />
+              )}
+            </div>
+
+            <h3 style={{
+              marginBottom: '0.75rem',
+              fontSize: '1.25rem',
+              fontWeight: 700,
+              color: theme.textPrimary
+            }}>
+              {accionConfirmar.tipo === 'activar' ? '¿Activar estudiante?' : '¿Inactivar estudiante?'}
+            </h3>
+
+            <p style={{
+              marginBottom: '1.75rem',
+              color: theme.textSecondary,
+              lineHeight: 1.5,
+              fontSize: '0.95rem'
+            }}>
+              {accionConfirmar.tipo === 'activar'
+                ? `Estás a punto de activar a ${accionConfirmar.estudiante.nombre} ${accionConfirmar.estudiante.apellido}. Podrá acceder al sistema nuevamente.`
+                : `Estás a punto de inactivar a ${accionConfirmar.estudiante.nombre} ${accionConfirmar.estudiante.apellido}. Perderá el acceso al sistema inmediatamente.`
+              }
+            </p>
+
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem',
+                  borderRadius: '0.625rem',
+                  border: `1px solid ${theme.surfaceBorder}`,
+                  background: 'transparent',
+                  color: theme.textPrimary,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'background 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = theme.surface}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={ejecutarAccion}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem',
+                  borderRadius: '0.625rem',
+                  border: 'none',
+                  background: accionConfirmar.tipo === 'activar'
+                    ? `linear-gradient(135deg, ${RedColorPalette.primary}, ${RedColorPalette.primaryDark})` // Usamos rojo también para activar por consistencia de marca o verde si se prefiere semántica
+                    : `linear-gradient(135deg, ${RedColorPalette.primary}, ${RedColorPalette.primaryDark})`,
+                  color: '#ffffff',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(239, 68, 68, 0.25)',
+                  transition: 'transform 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
     </div>
   );
 };

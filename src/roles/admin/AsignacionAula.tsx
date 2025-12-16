@@ -4,6 +4,7 @@ import {
   Search, Plus, Edit, X, MapPin, Save, Calendar, Clock, Users, AlertCircle, Grid, List, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { StyledSelect } from '../../components/StyledSelect';
+import SearchableSelect from '../../components/SearchableSelect';
 import GlassEffect from '../../components/GlassEffect';
 import AdminSectionHeader from '../../components/AdminSectionHeader';
 import { RedColorPalette } from '../../utils/colorMapper';
@@ -430,6 +431,15 @@ const AsignacionAula: React.FC<AsignacionAulaProps> = ({ darkMode: inheritedDark
 
     if (minutosFin <= minutosInicio) {
       showToast.error('La hora de fin debe ser mayor que la hora de inicio', darkMode);
+      return;
+    }
+
+    // Validar rango de horas permitido (08:00 - 18:00)
+    const HORA_MINIMA = 8 * 60; // 08:00 (480 minutos)
+    const HORA_MAXIMA = 18 * 60; // 18:00 (1080 minutos)
+
+    if (minutosInicio < HORA_MINIMA || minutosFin > HORA_MAXIMA) {
+      showToast.error('El horario de clases debe estar entre las 08:00 y las 18:00', darkMode);
       return;
     }
 
@@ -1287,24 +1297,25 @@ const AsignacionAula: React.FC<AsignacionAulaProps> = ({ darkMode: inheritedDark
               }}>
                 <div>
                   <label style={{ color: palette.modalTextPrimary, fontSize: '0.8rem', fontWeight: '600', marginBottom: '0.5rem', display: 'block' }}>Aula</label>
-                  <StyledSelect
+                  <SearchableSelect
                     name="id_aula"
                     required
                     defaultValue={selectedAsignacion?.id_aula || ''}
-                    placeholder="Seleccionar aula"
+                    placeholder="Buscar aula..."
                     options={aulas.filter(a => a.estado === 'activa').map(a => ({
                       value: a.id_aula,
                       label: `${a.nombre} - ${a.ubicacion || 'Sin ubicación'}`
                     }))}
+                    darkMode={darkMode}
                   />
                 </div>
                 <div>
                   <label style={{ color: palette.modalTextPrimary, fontSize: '0.8rem', fontWeight: '600', marginBottom: '0.5rem', display: 'block' }}>Curso</label>
-                  <StyledSelect
+                  <SearchableSelect
                     name="id_curso"
                     required
                     defaultValue={selectedAsignacion?.id_curso || ''}
-                    placeholder="Seleccionar curso"
+                    placeholder="Buscar curso..."
                     options={cursos.filter(c => {
                       // 1. Validar estado (whitelist)
                       const estadoValido = c.estado === 'activo' || c.estado === 'planificado';
@@ -1324,6 +1335,7 @@ const AsignacionAula: React.FC<AsignacionAulaProps> = ({ darkMode: inheritedDark
                         label: `${c.nombre}${horario} (${formatearFecha(c.fecha_inicio)} - ${formatearFecha(c.fecha_fin)})`
                       };
                     })}
+                    darkMode={darkMode}
                   />
                 </div>
               </div>
@@ -1344,15 +1356,16 @@ const AsignacionAula: React.FC<AsignacionAulaProps> = ({ darkMode: inheritedDark
                     No hay docentes disponibles. Por favor, cree docentes primero.
                   </div>
                 ) : (
-                  <StyledSelect
+                  <SearchableSelect
                     name="id_docente"
                     required
                     defaultValue={selectedAsignacion?.id_docente || ''}
-                    placeholder="Seleccionar docente"
+                    placeholder="Buscar docente..."
                     options={docentes.filter(d => d.estado === 'activo').map(d => ({
                       value: d.id_docente,
                       label: `${d.nombres} ${d.apellidos}`
                     }))}
+                    darkMode={darkMode}
                   />
                 )}
               </div>

@@ -39,7 +39,7 @@ const PanelDocentes = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Hook de notificaciones con WebSocket
-  const { 
+  const {
     notificaciones,
     marcarTodasLeidas
   } = useNotifications('docente');
@@ -404,9 +404,9 @@ const PanelDocentes = () => {
 
         {/* Contenido Principal */}
         <div style={{
-          marginLeft: isSmallScreen ? '0' : (sidebarCollapsed ? '4.375rem' : '17.5rem'),
+          marginLeft: isSmallScreen ? '0' : (sidebarCollapsed ? '4.75rem' : '16.25rem'),
           flex: 1,
-          padding: isMobile ? '0.75em' : '1.25rem',
+          padding: isMobile ? '0.75em' : '0.875rem',
           minHeight: '100vh',
           transition: 'margin-left 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
           width: isSmallScreen ? '100%' : 'auto',
@@ -455,9 +455,9 @@ const PanelDocentes = () => {
             )}
 
             {/* Información del módulo activo */}
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
               gap: isMobile ? '0.625em' : '1em',
               flex: 1,
               minWidth: 0
@@ -510,10 +510,10 @@ const PanelDocentes = () => {
             </div>
 
             {/* Iconos del lado derecho */}
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: isMobile ? '0.5em' : '0.75em', 
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: isMobile ? '0.5em' : '0.75em',
               position: 'relative',
               flexShrink: 0
             }}>

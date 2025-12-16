@@ -381,9 +381,9 @@ const PanelAdministrativos = () => {
 
         {/* Contenido Principal */}
         <div style={{
-          marginLeft: isSmallScreen ? '0' : (sidebarCollapsed ? '4.375rem' : '17.5rem'),
+          marginLeft: isSmallScreen ? '0' : (sidebarCollapsed ? '4.75rem' : '16.25rem'),
           flex: 1,
-          padding: isMobile ? '0.75em' : '1.25rem',
+          padding: isMobile ? '0.75em' : '0.875rem',
           minHeight: '100vh',
           transition: 'margin-left 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
           width: isSmallScreen ? '100%' : 'auto',

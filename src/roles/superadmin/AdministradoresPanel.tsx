@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  Search, UserPlus, Edit, X, Save, CheckCircle2, Ban, Lock, Unlock, Grid, List, Eye, EyeOff,
-  Users, GraduationCap, BarChart3, Settings, DollarSign, Database, Check, Phone, MapPin, Calendar, User
-} from 'lucide-react';
+import { Search, Plus, Filter, MoreVertical, Edit, Trash2, X, Save, Shield, Mail, Phone, MapPin, Calendar, Lock, Eye, EyeOff, UserPlus, FileText, Users, GraduationCap, BarChart3, Settings, DollarSign, Database, Grid, List, Ban, CheckCircle2 } from 'lucide-react';
 import { showToast } from '../../config/toastConfig';
 import { StyledSelect } from '../../components/StyledSelect';
 import GlassEffect from '../../components/GlassEffect';
@@ -257,7 +254,7 @@ const AdministradoresPanel: React.FC = () => {
       formData.permisos.forEach(p => fd.append('permisos[]', p));
 
       // Rol
-      const roleName = roles.find(r => r.id_rol === Number(formData.rolId))?.nombre_rol || 'administrativo';
+      const roleName = 'administrativo';
       fd.append('roleName', roleName);
 
       const res = await fetch(`${API_BASE}/admins`, {
@@ -286,7 +283,7 @@ const AdministradoresPanel: React.FC = () => {
       if (!selectedAdmin) return;
       const token = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
 
-      const roleName = roles.find(r => r.id_rol === Number(formData.rolId))?.nombre_rol || 'administrativo';
+      const roleName = 'administrativo';
 
       const payload = {
         nombre: formData.nombre,
@@ -461,7 +458,7 @@ const AdministradoresPanel: React.FC = () => {
   return (
     <div>
       <AdminSectionHeader
-        title="Gestión de Administradores"
+        title="Gestión de Administrativos"
         subtitle="Administra los usuarios con permisos administrativos del sistema"
         marginBottom={isMobile ? '12px' : '1.125rem'}
       />
@@ -592,7 +589,7 @@ const AdministradoresPanel: React.FC = () => {
               whiteSpace: 'nowrap'
             }}
           >
-            <UserPlus size={18} /> Nuevo Admin
+            <UserPlus size={18} /> Nuevo Administrativo
           </button>
         </div>
       </GlassEffect>
@@ -704,7 +701,7 @@ const AdministradoresPanel: React.FC = () => {
           }}>
             <thead>
               <tr style={{ background: themeColors.tableHeaderBg }}>
-                <th style={{ padding: '1rem', textAlign: 'left', color: themeColors.tableHeaderText }}>Administrador</th>
+                <th style={{ padding: '1rem', textAlign: 'left', color: themeColors.tableHeaderText }}>Administrativo</th>
                 <th style={{ padding: '1rem', textAlign: 'left', color: themeColors.tableHeaderText }}>Contacto</th>
                 <th style={{ padding: '1rem', textAlign: 'center', color: themeColors.tableHeaderText }}>Estado</th>
                 <th style={{ padding: '1rem', textAlign: 'center', color: themeColors.tableHeaderText }}>Acciones</th>
@@ -805,7 +802,7 @@ const AdministradoresPanel: React.FC = () => {
 
       {/* Modal Crear - CON TODOS LOS CAMPOS */}
       {showCreateModal && renderModal(
-        "Nuevo Administrador",
+        "Nuevo Administrativo",
         UserPlus,
         () => setShowCreateModal(false),
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(250px, 1fr))', gap: '0.5rem' }}>
@@ -819,24 +816,7 @@ const AdministradoresPanel: React.FC = () => {
               setCedulaError(null);
             }
           }} error={cedulaError} />
-          <div style={{ marginBottom: '0.5rem' }}>
-            <label style={{ display: 'block', color: darkMode ? 'rgba(255,255,255,0.9)' : '#1e293b', marginBottom: '0.25rem', fontSize: '0.8rem', fontWeight: 600 }}>Rol *</label>
-            <select
-              value={formData.rolId}
-              onChange={e => setFormData({ ...formData, rolId: e.target.value })}
-              style={{
-                width: '100%', padding: '0.5rem', borderRadius: '0.625rem',
-                background: darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
-                border: darkMode ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(0,0,0,0.15)',
-                color: darkMode ? 'rgba(255,255,255,0.9)' : '#1e293b', fontSize: '0.85rem'
-              }}
-            >
-              <option value="">Seleccionar rol</option>
-              {roles.filter(r => r.nombre_rol.toLowerCase() === 'administrativo').map(r => (
-                <option key={r.id_rol} value={r.id_rol}>{r.nombre_rol}</option>
-              ))}
-            </select>
-          </div>
+          {/* Rol input eliminado - se asigna por defecto 'administrativo' */}
 
           <InputField themeColors={themeColors} darkMode={darkMode} label="Nombres *" value={formData.nombre} onChange={(e: any) => setFormData({ ...formData, nombre: e.target.value.toUpperCase() })} />
           <InputField themeColors={themeColors} darkMode={darkMode} label="Apellidos *" value={formData.apellido} onChange={(e: any) => setFormData({ ...formData, apellido: e.target.value.toUpperCase() })} />
@@ -865,7 +845,29 @@ const AdministradoresPanel: React.FC = () => {
           </div>
 
           <div style={{ gridColumn: '1 / -1' }}>
-            <InputField themeColors={themeColors} darkMode={darkMode} label="Dirección" value={formData.direccion} onChange={(e: any) => setFormData({ ...formData, direccion: e.target.value.toUpperCase() })} icon={MapPin} />
+            <div style={{ marginBottom: '0.5rem' }}>
+              <label style={{ display: 'block', color: darkMode ? 'rgba(255,255,255,0.9)' : '#1e293b', marginBottom: '0.25rem', fontSize: '0.8rem', fontWeight: 600 }}>Dirección</label>
+              <div style={{ position: 'relative' }}>
+                <MapPin size={18} style={{ position: 'absolute', left: '0.75rem', top: '12px', color: darkMode ? 'rgba(255,255,255,0.5)' : '#64748b' }} />
+                <textarea
+                  value={formData.direccion}
+                  onChange={(e) => setFormData({ ...formData, direccion: e.target.value.toUpperCase() })}
+                  rows={3}
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem 0.5rem 0.5rem 2.5rem',
+                    borderRadius: '0.625rem',
+                    background: darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+                    border: darkMode ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(0,0,0,0.15)',
+                    color: darkMode ? 'rgba(255,255,255,0.9)' : '#1e293b',
+                    fontSize: '0.85rem',
+                    resize: 'vertical',
+                    minHeight: '80px',
+                    fontFamily: 'inherit'
+                  }}
+                />
+              </div>
+            </div>
           </div>
 
           <div style={{ position: 'relative' }}>
@@ -882,36 +884,7 @@ const AdministradoresPanel: React.FC = () => {
           </div>
 
           {/* Permisos Grid */}
-          <div style={{ gridColumn: '1 / -1', marginTop: '0.5rem' }}>
-            <label style={{ display: 'block', color: darkMode ? 'rgba(255,255,255,0.9)' : '#1e293b', marginBottom: '0.5rem', fontSize: '0.8rem', fontWeight: 600 }}>Permisos del Sistema</label>
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem' }}>
-              {permisosDisponibles.map(permiso => {
-                const Icon = permiso.icon;
-                const isSelected = formData.permisos.includes(permiso.id);
-                return (
-                  <div
-                    key={permiso.id}
-                    onClick={() => {
-                      const newPermisos = isSelected
-                        ? formData.permisos.filter(p => p !== permiso.id)
-                        : [...formData.permisos, permiso.id];
-                      setFormData({ ...formData, permisos: newPermisos });
-                    }}
-                    style={{
-                      padding: '0.75rem', borderRadius: '0.5rem', cursor: 'pointer',
-                      background: isSelected ? 'rgba(239, 68, 68, 0.1)' : (darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'),
-                      border: isSelected ? '1px solid #ef4444' : (darkMode ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(0,0,0,0.15)'),
-                      display: 'flex', alignItems: 'center', gap: '0.75rem', transition: 'all 0.2s'
-                    }}
-                  >
-                    <div style={{ color: isSelected ? '#ef4444' : themeColors.textMuted }}><Icon size={18} /></div>
-                    <div style={{ fontSize: '0.85rem', color: darkMode ? 'rgba(255,255,255,0.9)' : '#1e293b', fontWeight: 500 }}>{permiso.nombre}</div>
-                    {isSelected && <Check size={16} color="#ef4444" style={{ marginLeft: 'auto' }} />}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          {/* Permisos section eliminado */}
         </div>,
         <>
           <button onClick={() => {
@@ -943,13 +916,13 @@ const AdministradoresPanel: React.FC = () => {
             justifyContent: 'center',
             gap: '0.5rem',
             width: isMobile ? '100%' : 'auto'
-          }}><Save size={18} /> Crear Administrador</button>
+          }}><Save size={18} /> Crear Administrativo</button>
         </>
       )}
 
       {/* Modal Editar - CON TODOS LOS CAMPOS */}
       {showEditModal && renderModal(
-        "Editar Administrador",
+        "Editar Administrativo",
         Edit,
         () => {
           setShowEditModal(false);
@@ -969,24 +942,7 @@ const AdministradoresPanel: React.FC = () => {
           }} />
         </div>
 
-        <div style={{ marginBottom: '0.5rem' }}>
-          <label style={{ display: 'block', color: darkMode ? 'rgba(255,255,255,0.9)' : '#1e293b', marginBottom: '0.25rem', fontSize: '0.8rem', fontWeight: 600 }}>Rol</label>
-          <select
-            value={formData.rolId}
-            onChange={e => setFormData({ ...formData, rolId: e.target.value })}
-            style={{
-              width: '100%', padding: '0.5rem', borderRadius: '0.625rem',
-              background: darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
-              border: darkMode ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(0,0,0,0.15)',
-              color: darkMode ? 'rgba(255,255,255,0.9)' : '#1e293b', fontSize: '0.85rem'
-            }}
-          >
-            <option value="">Sin cambio</option>
-            {roles.filter(r => r.nombre_rol.toLowerCase() === 'administrativo').map(r => (
-              <option key={r.id_rol} value={r.id_rol}>{r.nombre_rol}</option>
-            ))}
-          </select>
-        </div>
+        {/* Rol input eliminado */}
 
         <InputField themeColors={themeColors} darkMode={darkMode} label="Nombres" value={formData.nombre} onChange={(e: any) => setFormData({ ...formData, nombre: e.target.value.toUpperCase() })} />
         <InputField themeColors={themeColors} darkMode={darkMode} label="Apellidos" value={formData.apellido} onChange={(e: any) => setFormData({ ...formData, apellido: e.target.value.toUpperCase() })} />
@@ -1015,40 +971,33 @@ const AdministradoresPanel: React.FC = () => {
         </div>
 
         <div style={{ gridColumn: '1 / -1' }}>
-          <InputField themeColors={themeColors} darkMode={darkMode} label="Dirección" value={formData.direccion} onChange={(e: any) => setFormData({ ...formData, direccion: e.target.value.toUpperCase() })} icon={MapPin} />
+          <div style={{ marginBottom: '0.5rem' }}>
+            <label style={{ display: 'block', color: darkMode ? 'rgba(255,255,255,0.9)' : '#1e293b', marginBottom: '0.25rem', fontSize: '0.8rem', fontWeight: 600 }}>Dirección</label>
+            <div style={{ position: 'relative' }}>
+              <MapPin size={18} style={{ position: 'absolute', left: '0.75rem', top: '12px', color: darkMode ? 'rgba(255,255,255,0.5)' : '#64748b' }} />
+              <textarea
+                value={formData.direccion}
+                onChange={(e) => setFormData({ ...formData, direccion: e.target.value.toUpperCase() })}
+                rows={3}
+                style={{
+                  width: '100%',
+                  padding: '0.5rem 0.5rem 0.5rem 2.5rem',
+                  borderRadius: '0.625rem',
+                  background: darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+                  border: darkMode ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(0,0,0,0.15)',
+                  color: darkMode ? 'rgba(255,255,255,0.9)' : '#1e293b',
+                  fontSize: '0.85rem',
+                  resize: 'vertical',
+                  minHeight: '80px',
+                  fontFamily: 'inherit'
+                }}
+              />
+            </div>
+          </div>
         </div>
 
         {/* Permisos Grid */}
-        <div style={{ gridColumn: '1 / -1', marginTop: '0.5rem' }}>
-          <label style={{ display: 'block', color: darkMode ? 'rgba(255,255,255,0.9)' : '#1e293b', marginBottom: '0.5rem', fontSize: '0.8rem', fontWeight: 600 }}>Permisos del Sistema</label>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem' }}>
-            {permisosDisponibles.map(permiso => {
-              const Icon = permiso.icon;
-              const isSelected = formData.permisos.includes(permiso.id);
-              return (
-                <div
-                  key={permiso.id}
-                  onClick={() => {
-                    const newPermisos = isSelected
-                      ? formData.permisos.filter(p => p !== permiso.id)
-                      : [...formData.permisos, permiso.id];
-                    setFormData({ ...formData, permisos: newPermisos });
-                  }}
-                  style={{
-                    padding: '0.75rem', borderRadius: '0.5rem', cursor: 'pointer',
-                    background: isSelected ? 'rgba(239, 68, 68, 0.1)' : (darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'),
-                    border: isSelected ? '1px solid #ef4444' : (darkMode ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(0,0,0,0.15)'),
-                    display: 'flex', alignItems: 'center', gap: '0.75rem', transition: 'all 0.2s'
-                  }}
-                >
-                  <div style={{ color: isSelected ? '#ef4444' : themeColors.textMuted }}><Icon size={18} /></div>
-                  <div style={{ fontSize: '0.85rem', color: darkMode ? 'rgba(255,255,255,0.9)' : '#1e293b', fontWeight: 500 }}>{permiso.nombre}</div>
-                  {isSelected && <Check size={16} color="#ef4444" style={{ marginLeft: 'auto' }} />}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        {/* Permisos section eliminado */}
       </div>,
         <>
           <button onClick={() => setShowEditModal(false)} style={{

@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, BookOpen, Calendar, FileText, Upload, Send,
-  CheckCircle, ChevronDown, ChevronUp, Edit, Trash2, AlertTriangle, X, FileType
+  CheckCircle, ChevronDown, ChevronUp, Edit, Trash2, AlertTriangle, X, FileType, Maximize2, Minimize2
 } from 'lucide-react';
 import axios from 'axios';
 import { showToast } from '../../config/toastConfig';
@@ -75,6 +75,7 @@ const DetalleCursoEstudiante: React.FC<DetalleCursoEstudianteProps> = ({ darkMod
     id_entrega?: number;
     id_modulo?: number;
   } | null>(null);
+  const [isPreviewFullscreen, setIsPreviewFullscreen] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [deleteData, setDeleteData] = useState<{ id_entrega: number; id_modulo: number } | null>(null);
 
@@ -914,83 +915,111 @@ const DetalleCursoEstudiante: React.FC<DetalleCursoEstudianteProps> = ({ darkMod
                   : 'rgba(255, 255, 255, 0.95)',
                 backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',
-                borderRadius: '12px',
-                padding: '1.25rem',
-                maxWidth: '42rem',
-                width: '90%',
-                maxHeight: '85vh',
+                borderRadius: isPreviewFullscreen ? '0' : '12px',
+                padding: isPreviewFullscreen ? '1rem' : '1.25rem',
+                maxWidth: isPreviewFullscreen ? '100%' : '50rem',
+                width: isPreviewFullscreen ? '100%' : '90%',
+                height: isPreviewFullscreen ? '100%' : 'auto',
+                maxHeight: isPreviewFullscreen ? '100%' : '85vh',
                 overflowY: 'hidden',
                 display: 'flex',
                 flexDirection: 'column',
-                border: `1px solid ${darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+                border: isPreviewFullscreen ? 'none' : `1px solid ${darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
                 boxShadow: darkMode
                   ? '0 20px 60px -12px rgba(0, 0, 0, 0.5)'
                   : '0 20px 60px -12px rgba(0, 0, 0, 0.15)',
                 zIndex: 99999,
-                animation: 'scaleIn 0.3s ease-out'
+                animation: 'scaleIn 0.3s ease-out',
+                transition: 'all 0.3s ease-in-out'
               }}>
               {/* Header */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexShrink: 0 }}>
                 <h3 style={{ color: theme.textPrimary, fontSize: '1rem', fontWeight: '700', margin: 0 }}>
                   Vista Previa del Archivo
                 </h3>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setArchivoPreview(null);
-                  }}
-                  style={{
-                    background: 'var(--estudiante-input-bg, rgba(255, 255, 255, 0.05))',
-                    border: '1px solid var(--estudiante-border, rgba(255, 255, 255, 0.1))',
-                    borderRadius: '8px',
-                    padding: '0.5rem',
-                    color: 'var(--estudiante-text-primary, #fff)',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'var(--estudiante-hover-bg, rgba(255, 255, 255, 0.1))';
-                    e.currentTarget.style.transform = 'rotate(90deg)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'var(--estudiante-input-bg, rgba(255, 255, 255, 0.05))';
-                    e.currentTarget.style.transform = 'rotate(0deg)';
-                  }}
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              {/* Información del archivo */}
-              <div style={{
-                background: darkMode ? 'rgba(251, 191, 36, 0.1)' : 'rgba(251, 191, 36, 0.05)',
-                border: '1px solid rgba(251, 191, 36, 0.3)',
-                borderRadius: '0.5rem',
-                padding: '0.75rem',
-                marginBottom: '0.75rem',
-                flexShrink: 0
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-                  <FileText size={20} color="#fbbf24" />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ color: theme.textPrimary, fontSize: '0.875rem', fontWeight: '600', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {archivoPreview.file.name}
-                    </p>
-                    <p style={{ color: theme.textMuted, fontSize: '0.75rem', margin: 0 }}>
-                      Tamaño: {(archivoPreview.file.size / 1024 / 1024).toFixed(2)} MB
-                    </p>
-                  </div>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsPreviewFullscreen(!isPreviewFullscreen);
+                    }}
+                    style={{
+                      background: 'var(--estudiante-input-bg, rgba(255, 255, 255, 0.05))',
+                      border: '1px solid var(--estudiante-border, rgba(255, 255, 255, 0.1))',
+                      borderRadius: '8px',
+                      padding: '0.5rem',
+                      color: 'var(--estudiante-text-primary, #fff)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.2s ease'
+                    }}
+                    title={isPreviewFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
+                  >
+                    {isPreviewFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setArchivoPreview(null);
+                      setIsPreviewFullscreen(false);
+                    }}
+                    style={{
+                      background: 'var(--estudiante-input-bg, rgba(255, 255, 255, 0.05))',
+                      border: '1px solid var(--estudiante-border, rgba(255, 255, 255, 0.1))',
+                      borderRadius: '8px',
+                      padding: '0.5rem',
+                      color: 'var(--estudiante-text-primary, #fff)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'var(--estudiante-hover-bg, rgba(255, 255, 255, 0.1))';
+                      e.currentTarget.style.transform = 'rotate(90deg)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'var(--estudiante-input-bg, rgba(255, 255, 255, 0.05))';
+                      e.currentTarget.style.transform = 'rotate(0deg)';
+                    }}
+                  >
+                    <X size={20} />
+                  </button>
                 </div>
               </div>
+
+              {/* Información del archivo - Ocultar en fullscreen */}
+              {!isPreviewFullscreen && (
+                <div style={{
+                  background: darkMode ? 'rgba(251, 191, 36, 0.1)' : 'rgba(251, 191, 36, 0.05)',
+                  border: '1px solid rgba(251, 191, 36, 0.3)',
+                  borderRadius: '0.5rem',
+                  padding: '0.75rem',
+                  marginBottom: '0.75rem',
+                  flexShrink: 0
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+                    <FileText size={20} color="#fbbf24" />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ color: theme.textPrimary, fontSize: '0.875rem', fontWeight: '600', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {archivoPreview.file.name}
+                      </p>
+                      <p style={{ color: theme.textMuted, fontSize: '0.75rem', margin: 0 }}>
+                        Tamaño: {(archivoPreview.file.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Vista previa */}
               <div style={{
                 background: darkMode ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)',
                 borderRadius: '0.5rem',
-                padding: '0.75rem',
+                padding: isPreviewFullscreen ? '0' : '0.75rem',
                 marginBottom: '0.75rem',
                 flex: 1,
                 display: 'flex',
@@ -1007,7 +1036,7 @@ const DetalleCursoEstudiante: React.FC<DetalleCursoEstudianteProps> = ({ darkMod
                     style={{
                       maxWidth: '100%',
                       maxHeight: '100%',
-                      borderRadius: '0.5rem',
+                      borderRadius: isPreviewFullscreen ? '0' : '0.5rem',
                       objectFit: 'contain'
                     }}
                   />
@@ -1019,7 +1048,7 @@ const DetalleCursoEstudiante: React.FC<DetalleCursoEstudianteProps> = ({ darkMod
                       width: '100%',
                       height: '100%',
                       border: 'none',
-                      borderRadius: '0.5rem'
+                      borderRadius: isPreviewFullscreen ? '0' : '0.5rem'
                     }}
                     title="PDF Preview"
                   />

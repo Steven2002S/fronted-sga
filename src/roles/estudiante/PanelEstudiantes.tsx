@@ -390,9 +390,9 @@ const PanelEstudiantes = () => {
 
         {/* Contenido Principal */}
         <div style={{
-          marginLeft: isSmallScreen ? '0' : (sidebarCollapsed ? '4.375rem' : '17.5rem'),
+          marginLeft: isSmallScreen ? '0' : (sidebarCollapsed ? '4.75rem' : '16.25rem'),
           flex: 1,
-          padding: isMobile ? '0.75em' : '1.25rem',
+          padding: isMobile ? '0.75em' : '0.875rem',
           minHeight: '100vh',
           transition: 'margin-left 0.3s ease',
           width: isSmallScreen ? '100%' : 'auto',

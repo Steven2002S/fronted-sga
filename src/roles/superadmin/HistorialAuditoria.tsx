@@ -854,7 +854,7 @@ const HistorialAuditoria: React.FC = () => {
                 }}
               >
                 <option value="">Todos los roles</option>
-                <option value="administrativo">Administrador</option>
+                <option value="administrativo">Administrativo</option>
                 <option value="docente">Docente</option>
                 <option value="estudiante">Estudiante</option>
               </select>

@@ -107,7 +107,7 @@ const PanelSuperAdmin: React.FC = () => {
 
   const tabs = [
     { id: 'dashboard', name: 'Dashboard', icon: BarChart3 },
-    { id: 'administradores', name: 'Administradores', icon: Users },
+    { id: 'administradores', name: 'Administrativos', icon: Users },
     { id: 'auditoria', name: 'Historial de Auditoría', icon: Shield },
     { id: 'config', name: 'Configuración', icon: Settings },
   ];
@@ -337,9 +337,9 @@ const PanelSuperAdmin: React.FC = () => {
 
         {/* Contenido Principal */}
         <div style={{
-          marginLeft: isMobile ? '0' : (sidebarCollapsed ? '4.375rem' : '17.5rem'),
+          marginLeft: isMobile ? '0' : (sidebarCollapsed ? '4.75rem' : '16.25rem'),
           flex: 1,
-          padding: isMobile ? '0.75rem' : (isSmallScreen ? '1rem' : '1.25rem'),
+          padding: isMobile ? '0.75rem' : '0.875rem',
           minHeight: '100vh',
           transition: 'margin-left 0.3s ease',
           width: 'auto',

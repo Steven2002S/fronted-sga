@@ -3,11 +3,11 @@ import {
   BookOpen,
   FileText,
   Award,
-  TrendingUp,
   Calendar,
   ChevronDown,
   ChevronRight,
-  BarChart3,
+  Clock,
+  AlertCircle,
 } from "lucide-react";
 import { showToast } from '../../config/toastConfig';
 import { useSocket } from "../../hooks/useSocket";
@@ -23,18 +23,20 @@ interface Curso {
 }
 
 interface Calificacion {
-  id_calificacion: number;
-  id_tarea: number;
+  id_calificacion?: number; // Puede ser null si no hay calificación
+  id_tarea: number; // Siempre hay tarea
   id_modulo?: number;
-  tarea_titulo: string; // Backend devuelve 'tarea_titulo'
-  nota: number; // Backend devuelve 'nota'
+  tarea_titulo: string;
+  nota?: number | null; // Puede ser null
   nota_maxima: number;
   ponderacion?: number;
-  fecha_calificacion: string;
-  comentario_docente: string; // Backend devuelve 'comentario_docente'
+  fecha_calificacion?: string;
+  comentario_docente?: string;
   modulo_nombre: string;
   modulo_orden: number;
-  resultado: string; // aprobado/reprobado
+  resultado?: string;
+  fecha_entrega?: string | null; // Nuevo campo
+  fecha_limite?: string; // Nuevo campo (si el backend lo envía)
 }
 
 interface ModuloConPromedio {
@@ -74,12 +76,6 @@ const Calificaciones: React.FC<{ darkMode: boolean }> = ({ darkMode: darkModePro
     {},
   );
   const [error, setError] = useState("");
-  const [promediosGlobales, setPromediosGlobales] = useState<
-    Record<number, any>
-  >({});
-  const [loadingPromedioGlobal, setLoadingPromedioGlobal] = useState<
-    Record<number, boolean>
-  >({});
 
   // Escuchar cambios en el tema (igual que docente)
   useEffect(() => {
@@ -212,7 +208,7 @@ const Calificaciones: React.FC<{ darkMode: boolean }> = ({ darkMode: darkModePro
 
   // Escuchar eventos de WebSocket para actualizaciones en tiempo real
   useSocket({
-    calificacion_actualizada: (data: any) => {
+    calificacion_actualizada: (_data: any) => {
       showToast.success(`Nueva calificación disponible`, darkMode);
 
       // Recargar calificaciones
@@ -224,13 +220,13 @@ const Calificaciones: React.FC<{ darkMode: boolean }> = ({ darkMode: darkModePro
       // Recargar calificaciones
       fetchCalificaciones();
     },
-    promedio_actualizado: (data: any) => {
+    promedio_actualizado: (_data: any) => {
       showToast.success(`Promedio actualizado`, darkMode);
 
       // Recargar calificaciones
       fetchCalificaciones();
     },
-    promedios_visibilidad_actualizada: (data: any) => {
+    promedios_visibilidad_actualizada: (_data: any) => {
       fetchCalificaciones();
     }
   });
@@ -240,17 +236,10 @@ const Calificaciones: React.FC<{ darkMode: boolean }> = ({ darkMode: darkModePro
   }, []);
 
   const toggleCurso = async (cursoId: number) => {
-    const isExpanding = !expandedCursos[cursoId];
-
     setExpandedCursos((prev) => ({
       ...prev,
       [cursoId]: !prev[cursoId],
     }));
-
-    // Si se está expandiendo y no tenemos el promedio global, lo cargamos
-    if (isExpanding && !promediosGlobales[cursoId]) {
-      await fetchPromedioGlobal(cursoId);
-    }
   };
 
   const toggleModulo = (cursoId: number, moduloId: number) => {
@@ -261,41 +250,7 @@ const Calificaciones: React.FC<{ darkMode: boolean }> = ({ darkMode: darkModePro
     }));
   };
 
-  const fetchPromedioGlobal = async (cursoId: number) => {
-    setLoadingPromedioGlobal((prev) => ({ ...prev, [cursoId]: true }));
 
-    try {
-      const token = sessionStorage.getItem("auth_token");
-      if (!token) return;
-
-      const response = await fetch(
-        `${API_BASE}/calificaciones/promedio-global/${cursoId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        // Solo guardar el promedio si está visible (todos los módulos publicados)
-        if (data.success && data.visible && data.promedio_global) {
-          setPromediosGlobales((prev) => ({
-            ...prev,
-            [cursoId]: data.promedio_global,
-          }));
-        } else if (data.success && !data.visible) {
-          // No guardar nada si no está visible
-          console.log(
-            "Promedio global oculto: No todos los módulos están publicados",
-          );
-        }
-      }
-    } catch (error) {
-      console.error("Error cargando promedio global:", error);
-    } finally {
-      setLoadingPromedioGlobal((prev) => ({ ...prev, [cursoId]: false }));
-    }
-  };
 
   const getColorByGrade = (grade: number) => {
     if (grade >= 9) return theme.success;
@@ -731,246 +686,7 @@ const Calificaciones: React.FC<{ darkMode: boolean }> = ({ darkMode: darkModePro
                 {expandedCursos[curso.id_curso] && (
                   <div style={{ padding: "0 1.5rem 1.5rem" }}>
                     {/* Mostrar promedios ponderados por módulo SI ESTÁN PUBLICADOS */}
-                    {modulos.filter((m) => m.promedios_publicados).length >
-                      0 && (
-                        <div
-                          style={{ marginTop: "1rem", marginBottom: "1.5rem" }}
-                        >
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "0.5rem",
-                              marginBottom: "0.75rem",
-                            }}
-                          >
-                            <BarChart3
-                              size={18}
-                              style={{ color: theme.accent }}
-                            />
-                            <h4
-                              style={{
-                                color: theme.textPrimary,
-                                fontSize: "0.9rem",
-                                fontWeight: "700",
-                                margin: 0,
-                                textTransform: "uppercase",
-                                letterSpacing: "0.5px",
-                              }}
-                            >
-                              Promedios por Módulo
-                            </h4>
-                          </div>
 
-                          {/* PROMEDIO GLOBAL BALANCEADO */}
-                          {promediosGlobales[curso.id_curso] && (
-                            <div
-                              style={{
-                                background: darkMode
-                                  ? "linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(245, 158, 11, 0.1))"
-                                  : "linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.05))",
-                                border: `2px solid ${theme.accent}`,
-                                borderRadius: "0.75rem",
-                                padding: "1rem 1.25rem",
-                                marginBottom: "1rem",
-                                boxShadow: darkMode
-                                  ? "0 4px 16px rgba(251, 191, 36, 0.2)"
-                                  : "0 4px 16px rgba(251, 191, 36, 0.15)",
-                              }}
-                            >
-                              <div
-                                style={{
-                                  display: "flex",
-                                  justifyContent: "space-between",
-                                  alignItems: "center",
-                                }}
-                              >
-                                <div>
-                                  <div
-                                    style={{
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: "0.5rem",
-                                      marginBottom: "0.25rem",
-                                    }}
-                                  >
-                                    <TrendingUp
-                                      size={18}
-                                      style={{ color: theme.accent }}
-                                    />
-                                    <span
-                                      style={{
-                                        color: theme.accent,
-                                        fontSize: "0.85rem",
-                                        fontWeight: "700",
-                                        textTransform: "uppercase",
-                                        letterSpacing: "0.5px",
-                                      }}
-                                    >
-                                      Promedio Global del Curso
-                                    </span>
-                                  </div>
-                                  <div>
-                                    <p
-                                      style={{
-                                        color: theme.textMuted,
-                                        fontSize: "0.75rem",
-                                        margin: "0 0 0.25rem 0",
-                                      }}
-                                    >
-                                      Sobre 10 puntos • Cada módulo aporta{" "}
-                                      {promediosGlobales[curso.id_curso]
-                                        .peso_por_modulo
-                                        ? promediosGlobales[
-                                          curso.id_curso
-                                        ].peso_por_modulo.toFixed(2)
-                                        : "0.00"}{" "}
-                                      puntos
-                                    </p>
-                                    <p
-                                      style={{
-                                        color: theme.textMuted,
-                                        fontSize: "0.7rem",
-                                        margin: 0,
-                                        fontStyle: "italic",
-                                      }}
-                                    >
-                                      {promediosGlobales[curso.id_curso]
-                                        .total_modulos || 0}{" "}
-                                      módulos con calificaciones
-                                    </p>
-                                  </div>
-                                </div>
-                                <div style={{ textAlign: "right" }}>
-                                  <div
-                                    style={{
-                                      color: getColorByGrade10(
-                                        promediosGlobales[curso.id_curso]
-                                          .promedio_global || 0,
-                                      ),
-                                      fontSize: "2.5rem",
-                                      fontWeight: "900",
-                                      lineHeight: 1,
-                                    }}
-                                  >
-                                    {(
-                                      promediosGlobales[curso.id_curso]
-                                        .promedio_global || 0
-                                    ).toFixed(2)}
-                                  </div>
-                                  <div
-                                    style={{
-                                      color: theme.textMuted,
-                                      fontSize: "0.8rem",
-                                      marginTop: "0.25rem",
-                                      fontWeight: "600",
-                                    }}
-                                  >
-                                    / 10 puntos
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-
-                          {loadingPromedioGlobal[curso.id_curso] &&
-                            !promediosGlobales[curso.id_curso] && (
-                              <div
-                                style={{
-                                  background: theme.cardBg,
-                                  border: `1px solid ${theme.border}`,
-                                  borderRadius: "0.75rem",
-                                  padding: "1rem",
-                                  marginBottom: "1rem",
-                                  textAlign: "center",
-                                }}
-                              >
-                                <span
-                                  style={{
-                                    color: theme.textMuted,
-                                    fontSize: "0.85rem",
-                                  }}
-                                >
-                                  Calculando promedio global...
-                                </span>
-                              </div>
-                            )}
-
-                          <div
-                            style={{
-                              display: "flex",
-                              flexDirection: "column",
-                              gap: "0.5rem",
-                            }}
-                          >
-                            {modulos
-                              .filter((m) => m.promedios_publicados)
-                              .map((modulo) => (
-                                <div
-                                  key={modulo.id_modulo}
-                                  style={{
-                                    background: darkMode
-                                      ? "rgba(59, 130, 246, 0.1)"
-                                      : "rgba(59, 130, 246, 0.05)",
-                                    border: `1px solid ${getColorByGrade10(modulo.promedio_ponderado)}40`,
-                                    borderRadius: "0.5rem",
-                                    padding: "0.75rem 1rem",
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    alignItems: "center",
-                                  }}
-                                >
-                                  <div>
-                                    <div
-                                      style={{
-                                        color: theme.textPrimary,
-                                        fontWeight: "600",
-                                        fontSize: "0.95rem",
-                                      }}
-                                    >
-                                      {modulo.nombre}
-                                    </div>
-                                    <div
-                                      style={{
-                                        color: theme.textMuted,
-                                        fontSize: "0.75rem",
-                                        marginTop: "0.125rem",
-                                      }}
-                                    >
-                                      {modulo.tareas_calificadas}{" "}
-                                      {modulo.tareas_calificadas === 1
-                                        ? "tarea calificada"
-                                        : "tareas calificadas"}
-                                    </div>
-                                  </div>
-                                  <div style={{ textAlign: "right" }}>
-                                    <div
-                                      style={{
-                                        color: getColorByGrade10(
-                                          modulo.promedio_ponderado,
-                                        ),
-                                        fontSize: "1.5rem",
-                                        fontWeight: "900",
-                                        lineHeight: 1,
-                                      }}
-                                    >
-                                      {modulo.promedio_ponderado.toFixed(2)}
-                                    </div>
-                                    <div
-                                      style={{
-                                        color: theme.textMuted,
-                                        fontSize: "0.7rem",
-                                        marginTop: "0.125rem",
-                                      }}
-                                    >
-                                      Promedio
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                          </div>
-                        </div>
-                      )}
 
                     {calificaciones.length === 0 ? (
                       <div
@@ -1142,39 +858,21 @@ const Calificaciones: React.FC<{ darkMode: boolean }> = ({ darkMode: darkModePro
                               {/* Tareas del Módulo (expandible) */}
                               {isModuloExpanded && (
                                 <div style={{ padding: "0.5rem" }}>
-                                  {modulo.calificaciones.map((calificacion) => (
-                                    <div
-                                      key={calificacion.id_calificacion}
-                                      style={{
-                                        background: darkMode
-                                          ? "rgba(255,255,255,0.02)"
-                                          : "rgba(255,255,255,0.5)",
-                                        border: `1px solid ${theme.border}`,
-                                        borderRadius: "0.5rem",
-                                        padding: "0.875rem",
-                                        marginBottom: "0.5rem",
-                                      }}
-                                    >
-                                      <div
-                                        style={{
-                                          display: "flex",
-                                          justifyContent: "space-between",
-                                          alignItems: "flex-start",
-                                          marginBottom: "0.5rem",
-                                        }}
-                                      >
-                                        <div style={{ flex: 1 }}>
-                                          <h5
-                                            style={{
-                                              color: theme.textPrimary,
-                                              fontSize: "0.95rem",
-                                              fontWeight: "600",
-                                              margin: 0,
-                                            }}
-                                          >
-                                            {calificacion.tarea_titulo}
-                                          </h5>
-                                        </div>
+                                  {modulo.calificaciones.map((calificacion) => {
+                                    const tieneNota = calificacion.nota !== null && calificacion.nota !== undefined;
+                                    const fueEntregada = !!calificacion.fecha_entrega;
+                                    const fechaLimite = calificacion.fecha_limite ? new Date(calificacion.fecha_limite) : null;
+                                    const fechaEntrega = calificacion.fecha_entrega ? new Date(calificacion.fecha_entrega) : null;
+                                    const fechaActual = new Date();
+                                    const estaVencida = !fueEntregada && fechaLimite && fechaActual > fechaLimite;
+                                    const esEntregaTardia = fueEntregada && fechaLimite && fechaEntrega && fechaEntrega > fechaLimite;
+
+                                    // Determinar estado para mostrar
+                                    let estadoUI = null;
+
+                                    if (tieneNota) {
+                                      // Render normal con nota
+                                      estadoUI = (
                                         <div
                                           style={{
                                             background:
@@ -1226,107 +924,233 @@ const Calificaciones: React.FC<{ darkMode: boolean }> = ({ darkMode: darkModePro
                                             </span>
                                           )}
                                         </div>
-                                      </div>
-
-                                      {calificacion.comentario_docente && (
-                                        <div
-                                          style={{
-                                            background: darkMode
-                                              ? "rgba(255,255,255,0.02)"
-                                              : "rgba(0,0,0,0.01)",
-                                            border: `1px solid ${theme.border}`,
-                                            borderRadius: "0.5rem",
-                                            padding: "0.625rem",
-                                            marginTop: "0.5rem",
-                                          }}
-                                        >
-                                          <p
+                                      );
+                                    } else if (fueEntregada) {
+                                      if (esEntregaTardia) {
+                                        // Entregada con retraso y sin calificar
+                                        estadoUI = (
+                                          <div
                                             style={{
-                                              color: theme.textSecondary,
-                                              margin: 0,
-                                              fontStyle: "italic",
-                                              fontSize: "0.85rem",
+                                              background: darkMode ? "rgba(245, 158, 11, 0.2)" : "rgba(245, 158, 11, 0.1)",
+                                              border: `1px solid ${darkMode ? "rgba(245, 158, 11, 0.4)" : "rgba(245, 158, 11, 0.3)"}`,
+                                              borderRadius: "0.5rem",
+                                              padding: "0.25rem 0.75rem",
+                                              display: "flex",
+                                              alignItems: "center",
+                                              gap: "0.5rem"
                                             }}
                                           >
-                                            "{calificacion.comentario_docente}"
-                                          </p>
+                                            <AlertCircle size={16} color="#f59e0b" />
+                                            <span style={{ color: "#f59e0b", fontSize: "0.85rem", fontWeight: "600" }}>
+                                              Entregada con Retraso
+                                            </span>
+                                          </div>
+                                        );
+                                      } else {
+                                        // Pendiente de calificar (a tiempo)
+                                        estadoUI = (
+                                          <div
+                                            style={{
+                                              background: darkMode ? "rgba(59, 130, 246, 0.2)" : "rgba(59, 130, 246, 0.1)",
+                                              border: `1px solid ${darkMode ? "rgba(59, 130, 246, 0.4)" : "rgba(59, 130, 246, 0.3)"}`,
+                                              borderRadius: "0.5rem",
+                                              padding: "0.25rem 0.75rem",
+                                              display: "flex",
+                                              alignItems: "center",
+                                              gap: "0.5rem"
+                                            }}
+                                          >
+                                            <Clock size={16} color="#3b82f6" />
+                                            <span style={{ color: "#3b82f6", fontSize: "0.85rem", fontWeight: "600" }}>
+                                              Pendiente de Calificar
+                                            </span>
+                                          </div>
+                                        );
+                                      }
+                                    } else if (estaVencida) {
+                                      // Vencida sin entrega
+                                      estadoUI = (
+                                        <div
+                                          style={{
+                                            background: darkMode ? "rgba(239, 68, 68, 0.2)" : "rgba(239, 68, 68, 0.1)",
+                                            border: `1px solid ${darkMode ? "rgba(239, 68, 68, 0.4)" : "rgba(239, 68, 68, 0.3)"}`,
+                                            borderRadius: "0.5rem",
+                                            padding: "0.25rem 0.75rem",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: "0.5rem"
+                                          }}
+                                        >
+                                          <AlertCircle size={16} color="#ef4444" />
+                                          <span style={{ color: "#ef4444", fontSize: "0.85rem", fontWeight: "600" }}>
+                                            No Entregada / Vencida
+                                          </span>
                                         </div>
-                                      )}
+                                      );
+                                    } else {
+                                      // Pendiente de entrega (aun a tiempo)
+                                      estadoUI = (
+                                        <div
+                                          style={{
+                                            background: darkMode ? "rgba(107, 114, 128, 0.2)" : "rgba(107, 114, 128, 0.1)",
+                                            border: `1px solid ${theme.border}`,
+                                            borderRadius: "0.5rem",
+                                            padding: "0.25rem 0.75rem",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: "0.5rem"
+                                          }}
+                                        >
+                                          <Clock size={16} color={theme.textMuted} />
+                                          <span style={{ color: theme.textMuted, fontSize: "0.85rem", fontWeight: "500" }}>
+                                            Pendiente de Entrega
+                                          </span>
+                                        </div>
+                                      );
+                                    }
 
+                                    return (
                                       <div
+                                        key={calificacion.id_calificacion || `tarea-${calificacion.id_tarea}`}
                                         style={{
-                                          display: "flex",
-                                          justifyContent: "space-between",
-                                          alignItems: "center",
-                                          marginTop: "0.625rem",
-                                          paddingTop: "0.625rem",
-                                          borderTop: `1px solid ${theme.border}`,
+                                          background: darkMode
+                                            ? "rgba(255,255,255,0.02)"
+                                            : "rgba(255,255,255,0.5)",
+                                          border: `1px solid ${theme.border}`,
+                                          borderRadius: "0.5rem",
+                                          padding: "0.875rem",
+                                          marginBottom: "0.5rem",
                                         }}
                                       >
                                         <div
                                           style={{
                                             display: "flex",
-                                            alignItems: "center",
-                                            gap: "0.5rem",
+                                            justifyContent: "space-between",
+                                            alignItems: "flex-start",
+                                            marginBottom: "0.5rem",
                                           }}
                                         >
-                                          <Calendar
-                                            size={14}
-                                            color={theme.textMuted}
-                                          />
-                                          <span
+                                          <div style={{ flex: 1 }}>
+                                            <h5
+                                              style={{
+                                                color: theme.textPrimary,
+                                                fontSize: "0.95rem",
+                                                fontWeight: "600",
+                                                margin: 0,
+                                              }}
+                                            >
+                                              {calificacion.tarea_titulo}
+                                            </h5>
+                                          </div>
+                                          {estadoUI}
+                                        </div>
+
+                                        {calificacion.comentario_docente && (
+                                          <div
                                             style={{
-                                              color: theme.textMuted,
-                                              fontSize: "0.8rem",
+                                              background: darkMode
+                                                ? "rgba(255,255,255,0.02)"
+                                                : "rgba(0,0,0,0.01)",
+                                              border: `1px solid ${theme.border}`,
+                                              borderRadius: "0.5rem",
+                                              padding: "0.625rem",
+                                              marginTop: "0.5rem",
                                             }}
                                           >
-                                            {new Date(
-                                              calificacion.fecha_calificacion,
-                                            ).toLocaleDateString("es-ES")}
-                                          </span>
-                                        </div>
+                                            <p
+                                              style={{
+                                                color: theme.textSecondary,
+                                                margin: 0,
+                                                fontStyle: "italic",
+                                                fontSize: "0.85rem",
+                                              }}
+                                            >
+                                              "{calificacion.comentario_docente}"
+                                            </p>
+                                          </div>
+                                        )}
+
                                         <div
                                           style={{
-                                            background:
-                                              getColorByGrade(
-                                                ((parseFloat(calificacion.nota as any) ||
-                                                  0) /
-                                                  (parseFloat(
-                                                    calificacion.nota_maxima as any,
-                                                  ) || 10)) *
-                                                10,
-                                              ) + "20",
-                                            borderRadius: "0.5rem",
-                                            padding: "0.2rem 0.5rem",
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            alignItems: "center",
+                                            marginTop: "0.625rem",
+                                            paddingTop: "0.625rem",
+                                            borderTop: `1px solid ${theme.border}`,
                                           }}
                                         >
-                                          <span
+                                          <div
                                             style={{
-                                              color: getColorByGrade(
-                                                ((parseFloat(calificacion.nota as any) ||
-                                                  0) /
-                                                  (parseFloat(
-                                                    calificacion.nota_maxima as any,
-                                                  ) || 10)) *
-                                                10,
-                                              ),
-                                              fontSize: "0.75rem",
-                                              fontWeight: "600",
+                                              display: "flex",
+                                              alignItems: "center",
+                                              gap: "0.5rem",
                                             }}
                                           >
-                                            {getGradeLabel(
-                                              ((parseFloat(calificacion.nota as any) ||
-                                                0) /
-                                                (parseFloat(
-                                                  calificacion.nota_maxima as any,
-                                                ) || 10)) *
-                                              10,
-                                            )}
-                                          </span>
+                                            <Calendar
+                                              size={14}
+                                              color={theme.textMuted}
+                                            />
+                                            <span
+                                              style={{
+                                                color: theme.textMuted,
+                                                fontSize: "0.8rem",
+                                              }}
+                                            >
+                                              {tieneNota && calificacion.fecha_calificacion ? (
+                                                `Calificado: ${new Date(calificacion.fecha_calificacion).toLocaleDateString("es-ES")}`
+                                              ) : (
+                                                calificacion.fecha_limite ? `Vence: ${new Date(calificacion.fecha_limite).toLocaleDateString("es-ES")}` : "Sin fecha límite"
+                                              )}
+                                            </span>
+                                          </div>
+
+                                          {/* Mostrar calificación relativa solo si tiene nota */}
+                                          {tieneNota && (
+                                            <div
+                                              style={{
+                                                background:
+                                                  getColorByGrade(
+                                                    ((parseFloat(calificacion.nota as any) ||
+                                                      0) /
+                                                      (parseFloat(
+                                                        calificacion.nota_maxima as any,
+                                                      ) || 10)) *
+                                                    10,
+                                                  ) + "20",
+                                                borderRadius: "0.5rem",
+                                                padding: "0.2rem 0.5rem",
+                                              }}
+                                            >
+                                              <span
+                                                style={{
+                                                  color: getColorByGrade(
+                                                    ((parseFloat(calificacion.nota as any) ||
+                                                      0) /
+                                                      (parseFloat(
+                                                        calificacion.nota_maxima as any,
+                                                      ) || 10)) *
+                                                    10,
+                                                  ),
+                                                  fontSize: "0.75rem",
+                                                  fontWeight: "600",
+                                                }}
+                                              >
+                                                {getGradeLabel(
+                                                  ((parseFloat(calificacion.nota as any) ||
+                                                    0) /
+                                                    (parseFloat(
+                                                      calificacion.nota_maxima as any,
+                                                    ) || 10)) *
+                                                  10,
+                                                )}
+                                              </span>
+                                            </div>
+                                          )}
                                         </div>
                                       </div>
-                                    </div>
-                                  ))}
+                                    )
+                                  })}
                                 </div>
                               )}
                             </div>
