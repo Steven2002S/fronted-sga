@@ -41,7 +41,7 @@ const permisosDisponibles = [
 ];
 
 // Componente de Input reutilizable - FUERA del componente principal para evitar re-creación
-const InputField = React.memo(({ label, type = 'text', value, onChange, placeholder = '', icon: Icon, error, themeColors, darkMode }: any) => (
+const InputField = React.memo(({ label, type = 'text', value, onChange, placeholder = '', icon: Icon, error, themeColors, darkMode, readOnly }: any) => (
   <div style={{ marginBottom: '0.5rem' }}>
     <label style={{ display: 'block', color: darkMode ? 'rgba(255,255,255,0.9)' : '#1e293b', marginBottom: '0.25rem', fontSize: '0.8rem', fontWeight: 600 }}>{label}</label>
     <div style={{ position: 'relative' }}>
@@ -51,6 +51,7 @@ const InputField = React.memo(({ label, type = 'text', value, onChange, placehol
         value={value}
         onChange={onChange}
         placeholder={placeholder}
+        readOnly={readOnly}
         style={{
           width: '100%',
           padding: Icon ? '0.5rem 0.5rem 0.5rem 2.5rem' : '0.5rem',
@@ -58,7 +59,9 @@ const InputField = React.memo(({ label, type = 'text', value, onChange, placehol
           background: darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
           border: darkMode ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(0,0,0,0.15)',
           color: darkMode ? 'rgba(255,255,255,0.9)' : '#1e293b',
-          fontSize: '0.85rem'
+          fontSize: '0.85rem',
+          cursor: readOnly ? 'default' : 'text',
+          opacity: readOnly ? 0.8 : 1
         }}
       />
     </div>
@@ -97,7 +100,6 @@ const AdministradoresPanel: React.FC = () => {
 
   // Estados de UI para formularios
   const [showPwd, setShowPwd] = useState(false);
-  const [showPwdConfirm, setShowPwdConfirm] = useState(false);
   const [cedulaError, setCedulaError] = useState<string | null>(null);
 
   const API_BASE = (import.meta as any).env?.VITE_API_URL ? `${(import.meta as any).env.VITE_API_URL}/api` : 'http://localhost:3000/api';
@@ -269,13 +271,24 @@ const AdministradoresPanel: React.FC = () => {
       setShowCreateModal(false);
       setFormData({
         cedula: '', nombre: '', apellido: '', email: '', telefono: '',
-        fecha_nacimiento: '', direccion: '', genero: '', password: '', confirmPassword: '',
+        fecha_nacimiento: '', direccion: '', genero: '', password: generateSecurePassword(), confirmPassword: '',
         rolId: '', permisos: []
       });
       loadData();
     } catch (error: any) {
       showToast.error(error.message || 'Error al crear administrador', darkMode);
     }
+  };
+
+  // Helper para generar contraseña segura
+  const generateSecurePassword = () => {
+    const length = 10;
+    const charset = "0123456789";
+    let retVal = "";
+    for (let i = 0, n = charset.length; i < length; ++i) {
+      retVal += charset.charAt(Math.floor(Math.random() * n));
+    }
+    return retVal;
   };
 
   const handleUpdate = async () => {
@@ -320,10 +333,7 @@ const AdministradoresPanel: React.FC = () => {
   const handleChangePassword = async () => {
     try {
       if (!selectedAdmin) return;
-      if (passwordData.newPassword !== passwordData.confirmPassword) {
-        showToast.error('Las contraseñas no coinciden', darkMode);
-        return;
-      }
+      // Ya no verificamos coincidencia porque se genera auto
       if (passwordData.newPassword.length < 6) {
         showToast.error('La contraseña debe tener al menos 6 caracteres', darkMode);
         return;
@@ -336,16 +346,19 @@ const AdministradoresPanel: React.FC = () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ password: passwordData.newPassword })
+        body: JSON.stringify({
+          password: passwordData.newPassword,
+          reset: true // Flag para indicar flujo de "Olvidé contraseña"
+        })
       });
 
       if (!res.ok) throw new Error(await res.text());
 
-      showToast.success('Contraseña actualizada exitosamente', darkMode);
+      showToast.success('Contraseña reseteada y enviada por correo exitosamente', darkMode);
       setShowPasswordModal(false);
       setPasswordData({ newPassword: '', confirmPassword: '' });
     } catch (error: any) {
-      showToast.error(error.message || 'Error al cambiar contraseña', darkMode);
+      showToast.error(error.message || 'Error al resetear contraseña', darkMode);
     }
   };
 
@@ -566,9 +579,12 @@ const AdministradoresPanel: React.FC = () => {
           {/* Botón Nuevo Admin */}
           <button
             onClick={() => {
+              const newPassword = generateSecurePassword();
               setFormData({
                 cedula: '', nombre: '', apellido: '', email: '', telefono: '',
-                fecha_nacimiento: '', direccion: '', genero: '', password: '', confirmPassword: '',
+                fecha_nacimiento: '', direccion: '', genero: '',
+                password: newPassword,
+                confirmPassword: newPassword, // Auto-confirmar
                 rolId: '', permisos: []
               });
               setShowCreateModal(true);
@@ -773,9 +789,12 @@ const AdministradoresPanel: React.FC = () => {
                       <button
                         onClick={() => {
                           setSelectedAdmin(admin);
+                          const newPass = generateSecurePassword();
+                          setPasswordData({ newPassword: newPass, confirmPassword: newPass });
                           setShowPasswordModal(true);
                         }}
                         style={{ padding: '0.5rem', borderRadius: '0.5rem', border: `1px solid ${themeColors.controlBorder}`, background: 'transparent', color: themeColors.textPrimary, cursor: 'pointer' }}
+                        title="Resetear Contraseña"
                       >
                         <Lock size={16} />
                       </button>
@@ -870,17 +889,39 @@ const AdministradoresPanel: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ position: 'relative' }}>
-            <InputField themeColors={themeColors} darkMode={darkMode} label="Contraseña *" type={showPwd ? 'text' : 'password'} value={formData.password} onChange={(e: any) => setFormData({ ...formData, password: e.target.value })} />
-            <button onClick={() => setShowPwd(!showPwd)} style={{ position: 'absolute', right: '10px', top: '29px', background: 'none', border: 'none', color: themeColors.textSecondary, cursor: 'pointer' }}>
-              {showPwd ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
-          </div>
-          <div style={{ position: 'relative' }}>
-            <InputField themeColors={themeColors} darkMode={darkMode} label="Confirmar *" type={showPwdConfirm ? 'text' : 'password'} value={formData.confirmPassword} onChange={(e: any) => setFormData({ ...formData, confirmPassword: e.target.value })} />
-            <button onClick={() => setShowPwdConfirm(!showPwdConfirm)} style={{ position: 'absolute', right: '10px', top: '29px', background: 'none', border: 'none', color: themeColors.textSecondary, cursor: 'pointer' }}>
-              {showPwdConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
+          <div style={{ gridColumn: '1 / -1', marginBottom: '0.5rem' }}>
+            <label style={{ display: 'block', color: darkMode ? 'rgba(255,255,255,0.9)' : '#1e293b', marginBottom: '0.25rem', fontSize: '0.8rem', fontWeight: 600 }}>Contraseña (Generada Automáticamente)</label>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div style={{ position: 'relative', flex: 1 }}>
+                <InputField themeColors={themeColors} darkMode={darkMode} label="" type={showPwd ? 'text' : 'password'} value={formData.password} onChange={() => { }} icon={Lock} />
+                <button onClick={() => setShowPwd(!showPwd)} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: themeColors.textSecondary, cursor: 'pointer', zIndex: 2 }}>
+                  {showPwd ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  const newPass = generateSecurePassword();
+                  setFormData({ ...formData, password: newPass, confirmPassword: newPass });
+                }}
+                style={{
+                  padding: '0 1rem',
+                  borderRadius: '0.625rem',
+                  border: `1px solid ${themeColors.controlBorder}`,
+                  background: darkMode ? 'rgba(255,255,255,0.1)' : '#f1f5f9',
+                  color: themeColors.textPrimary,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  height: '42px', // Match input height roughly
+                  marginTop: '0px'
+                }}
+                title="Regenerar contraseña"
+              >
+                <Settings size={16} /> Regenerar
+              </button>
+            </div>
           </div>
 
           <div style={{
@@ -1045,22 +1086,61 @@ const AdministradoresPanel: React.FC = () => {
 
       {/* Modal Password */}
       {showPasswordModal && renderModal(
-        "Cambiar Contraseña",
+        "Resetear Contraseña",
         Lock,
         () => setShowPasswordModal(false),
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div style={{ position: 'relative' }}>
-            <InputField themeColors={themeColors} darkMode={darkMode} label="Nueva Contraseña" type={showPwd ? 'text' : 'password'} value={passwordData.newPassword} onChange={(e: any) => setPasswordData({ ...passwordData, newPassword: e.target.value })} />
-            <button onClick={() => setShowPwd(!showPwd)} style={{ position: 'absolute', right: '10px', top: '29px', background: 'none', border: 'none', color: themeColors.textSecondary, cursor: 'pointer' }}>
-              {showPwd ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
+
+          <div style={{ marginBottom: '0.5rem' }}>
+            <label style={{ display: 'block', color: darkMode ? 'rgba(255,255,255,0.9)' : '#1e293b', marginBottom: '0.25rem', fontSize: '0.8rem', fontWeight: 600 }}>Contraseña Temporal (Generada)</label>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div style={{ position: 'relative', flex: 1 }}>
+                <InputField themeColors={themeColors} darkMode={darkMode} label="" type={showPwd ? 'text' : 'password'} value={passwordData.newPassword} onChange={() => { }} icon={Lock} readOnly />
+                <button onClick={() => setShowPwd(!showPwd)} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: themeColors.textSecondary, cursor: 'pointer', zIndex: 2 }}>
+                  {showPwd ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  const newPass = generateSecurePassword();
+                  setPasswordData({ newPassword: newPass, confirmPassword: newPass });
+                }}
+                style={{
+                  padding: '0 1rem',
+                  borderRadius: '0.625rem',
+                  border: `1px solid ${themeColors.controlBorder}`,
+                  background: darkMode ? 'rgba(255,255,255,0.1)' : '#f1f5f9',
+                  color: themeColors.textPrimary,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  height: '42px',
+                  marginTop: '0px'
+                }}
+                title="Regenerar contraseña"
+              >
+                <Settings size={16} /> Regenerar
+              </button>
+            </div>
           </div>
-          <div style={{ position: 'relative' }}>
-            <InputField themeColors={themeColors} darkMode={darkMode} label="Confirmar Contraseña" type={showPwdConfirm ? 'text' : 'password'} value={passwordData.confirmPassword} onChange={(e: any) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })} />
-            <button onClick={() => setShowPwdConfirm(!showPwdConfirm)} style={{ position: 'absolute', right: '10px', top: '29px', background: 'none', border: 'none', color: themeColors.textSecondary, cursor: 'pointer' }}>
-              {showPwdConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
+
+          <div style={{
+            background: darkMode ? 'rgba(59, 130, 246, 0.1)' : '#eff6ff',
+            border: `1px solid ${darkMode ? 'rgba(59, 130, 246, 0.2)' : '#bfdbfe'}`,
+            borderRadius: '0.5rem',
+            padding: '0.75rem',
+            display: 'flex',
+            gap: '0.75rem',
+            alignItems: 'start'
+          }}>
+            <Shield size={18} color={darkMode ? '#60a5fa' : '#3b82f6'} style={{ flexShrink: 0, marginTop: '2px' }} />
+            <div style={{ fontSize: '0.8125rem', color: darkMode ? '#bfdbfe' : '#1e40af', lineHeight: '1.4' }}>
+              <strong>Nota de Seguridad:</strong> Esta acción cambiará la contraseña actual por la mostrada arriba. Se enviará un correo de notificación y el usuario deberá cambiarla obligatoriamente en su próximo inicio de sesión.
+            </div>
           </div>
+
         </div>,
         <>
           <button onClick={() => setShowPasswordModal(false)} style={{
@@ -1085,7 +1165,10 @@ const AdministradoresPanel: React.FC = () => {
             justifyContent: 'center',
             gap: '0.5rem',
             width: isMobile ? '100%' : 'auto'
-          }}><Save size={18} /> Actualizar Contraseña</button>
+          }}>
+            <Mail size={18} style={{ marginRight: '0.5rem' }} />
+            Resetear y Notificar
+          </button>
         </>
       )}
     </div>

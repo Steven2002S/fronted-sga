@@ -80,6 +80,7 @@ const PagosMenuales: React.FC<PagosMenualesProps> = ({ darkMode = false }) => {
   const [selectedCuota, setSelectedCuota] = useState<Cuota | null>(null);
   const [cuotasPorCurso, setCuotasPorCurso] = useState<{ [key: number]: Cuota[] }>({});
   const [loadingCuotas, setLoadingCuotas] = useState<{ [key: number]: boolean }>({});
+  const [errorCuotas, setErrorCuotas] = useState<{ [key: number]: boolean }>({});
   const [decisionLoading, setDecisionLoading] = useState<number | null>(null);
   const [cursoConfirmacion, setCursoConfirmacion] = useState<CursoConPagos | null>(null);
 
@@ -138,8 +139,15 @@ const PagosMenuales: React.FC<PagosMenualesProps> = ({ darkMode = false }) => {
   }, [storageKey]);
 
   const loadCuotasMatricula = useCallback(async (id_matricula: number) => {
+    // Don't retry if there was already an error for this matricula
+    if (errorCuotas[id_matricula]) {
+      console.log(`Skipping load for matricula ${id_matricula} due to previous error`);
+      return;
+    }
+
     try {
       setLoadingCuotas(prev => ({ ...prev, [id_matricula]: true }));
+      setErrorCuotas(prev => ({ ...prev, [id_matricula]: false }));
       const token = sessionStorage.getItem('auth_token');
 
       if (!token) {
@@ -156,13 +164,15 @@ const PagosMenuales: React.FC<PagosMenualesProps> = ({ darkMode = false }) => {
 
       const cuotas = await response.json();
       setCuotasPorCurso(prev => ({ ...prev, [id_matricula]: cuotas }));
+      setErrorCuotas(prev => ({ ...prev, [id_matricula]: false }));
     } catch (error) {
       console.error('Error cargando cuotas:', error);
+      setErrorCuotas(prev => ({ ...prev, [id_matricula]: true }));
       showToast.error('Error cargando cuotas', darkMode);
     } finally {
       setLoadingCuotas(prev => ({ ...prev, [id_matricula]: false }));
     }
-  }, [darkMode]);
+  }, [darkMode, errorCuotas]);
 
   const handleToggleCuotas = async (curso: CursoConPagos) => {
     if (cursoExpandido === curso.id_matricula) {
@@ -300,6 +310,22 @@ const PagosMenuales: React.FC<PagosMenualesProps> = ({ darkMode = false }) => {
       const resumen = await resResumen.json();
       setResumenPagos(resumen);
 
+      // Limpiar localStorage de matrículas inválidas
+      // Solo mantener las matrículas que realmente existen en los cursos actuales
+      const matriculasValidas = new Set(cursos.map((c: CursoConPagos) => c.id_matricula));
+      setCursosHistoricos(prev => {
+        const filtrados = prev.filter(curso => matriculasValidas.has(curso.id_matricula));
+        if (filtrados.length !== prev.length) {
+          console.log(`🧹 Limpiando ${prev.length - filtrados.length} matrículas inválidas del historial`);
+          try {
+            localStorage.setItem(storageKey, JSON.stringify(filtrados));
+          } catch (error) {
+            console.warn('No se pudo limpiar el historial:', error);
+          }
+        }
+        return filtrados;
+      });
+
     } catch (error) {
       console.error('Error cargando datos:', error);
       setError(error instanceof Error ? error.message : 'Error cargando datos');
@@ -319,16 +345,11 @@ const PagosMenuales: React.FC<PagosMenualesProps> = ({ darkMode = false }) => {
 
   const cursosAlDia = useMemo(() => {
     const pendientesIds = new Set(cursosConPagos.map(curso => curso.id_matricula));
-    return cursosHistoricos.filter(curso => curso.estado_pago === 'al-dia' && !pendientesIds.has(curso.id_matricula));
+    // Solo mostrar cursos del historial que están al día y no tienen pagos pendientes
+    return cursosHistoricos.filter(curso =>
+      curso.estado_pago === 'al-dia' && !pendientesIds.has(curso.id_matricula)
+    );
   }, [cursosConPagos, cursosHistoricos]);
-
-  useEffect(() => {
-    cursosAlDia.forEach(curso => {
-      if (!cuotasPorCurso[curso.id_matricula] && !loadingCuotas[curso.id_matricula]) {
-        loadCuotasMatricula(curso.id_matricula);
-      }
-    });
-  }, [cursosAlDia, cuotasPorCurso, loadingCuotas, loadCuotasMatricula]);
 
   const obtenerMontoTotalPagado = useCallback((curso: CursoConPagos) => {
     const cuotas = cuotasPorCurso[curso.id_matricula];
@@ -767,7 +788,7 @@ const PagosMenuales: React.FC<PagosMenualesProps> = ({ darkMode = false }) => {
                     key={curso.id_matricula}
                     style={{
                       backgroundColor: darkMode ? 'rgba(255,255,255,0.05)' : '#ffffff',
-                      border: `1px solid ${darkMode ? 'rgba(251, 191, 36, 0.15)' : 'rgba(251, 191, 36, 0.2)'}`,
+                      border: `1px solid ${darkMode ? 'rgba(251, 191, 36, 0.15)' : 'rgba(251, 191, 36, 0.2)'} `,
                       borderRadius: '1rem',
                       padding: '1.15em 1.25em',
                       backdropFilter: 'blur(10px)',
@@ -818,7 +839,7 @@ const PagosMenuales: React.FC<PagosMenualesProps> = ({ darkMode = false }) => {
                           )}
                         </div>
                         <div style={{ fontSize: '0.78rem', color: darkMode ? 'rgba(255,255,255,0.7)' : '#6b7280', marginTop: '0.25em' }}>
-                          {curso.tipo_curso_nombre} {!curso.es_curso_promocional && curso.codigo_matricula && curso.codigo_matricula.toString() !== "0" && `• ${curso.codigo_matricula.toString().replace(/\s*0\s*$/, '')}`}
+                          {curso.tipo_curso_nombre} {!curso.es_curso_promocional && curso.codigo_matricula && curso.codigo_matricula.toString() !== "0" && `• ${curso.codigo_matricula.toString().replace(/\s*0\s*$/, '')} `}
                         </div>
                         {!!curso.es_curso_promocional && curso.nombre_promocion && (
                           <div style={{
@@ -895,7 +916,7 @@ const PagosMenuales: React.FC<PagosMenualesProps> = ({ darkMode = false }) => {
                         padding: '0.625em',
                         background: darkMode ? 'rgba(251, 191, 36, 0.08)' : 'rgba(251, 191, 36, 0.1)',
                         borderRadius: '0.625em',
-                        border: `1px solid ${darkMode ? 'rgba(251, 191, 36, 0.15)' : 'rgba(251, 191, 36, 0.2)'}`
+                        border: `1px solid ${darkMode ? 'rgba(251, 191, 36, 0.15)' : 'rgba(251, 191, 36, 0.2)'} `
                       }}>
                         <div style={{ fontSize: '0.72rem', color: '#f59e0b', marginBottom: '0.375em', display: 'flex', alignItems: 'center', gap: '0.25em', fontWeight: '600' }}>
                           <Clock size={12} strokeWidth={2.5} color="#f59e0b" />
@@ -910,7 +931,7 @@ const PagosMenuales: React.FC<PagosMenualesProps> = ({ darkMode = false }) => {
                         padding: '0.625em',
                         background: darkMode ? 'rgba(239, 68, 68, 0.08)' : 'rgba(239, 68, 68, 0.1)',
                         borderRadius: '0.625em',
-                        border: `1px solid ${darkMode ? 'rgba(239, 68, 68, 0.15)' : 'rgba(239, 68, 68, 0.2)'}`
+                        border: `1px solid ${darkMode ? 'rgba(239, 68, 68, 0.15)' : 'rgba(239, 68, 68, 0.2)'} `
                       }}>
                         <div style={{ fontSize: '0.72rem', color: '#ef4444', marginBottom: '0.375em', display: 'flex', alignItems: 'center', gap: '0.25em', fontWeight: '600' }}>
                           <AlertCircle size={12} strokeWidth={2.5} color="#ef4444" />
@@ -926,7 +947,7 @@ const PagosMenuales: React.FC<PagosMenualesProps> = ({ darkMode = false }) => {
                           padding: '0.625em',
                           background: darkMode ? 'rgba(59, 130, 246, 0.08)' : 'rgba(59, 130, 246, 0.1)',
                           borderRadius: '0.625em',
-                          border: `1px solid ${darkMode ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.2)'}`
+                          border: `1px solid ${darkMode ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.2)'} `
                         }}>
                           <div style={{ fontSize: '0.72rem', color: '#3b82f6', marginBottom: '0.375em', display: 'flex', alignItems: 'center', gap: '0.25em', fontWeight: '600' }}>
                             <Calendar size={12} strokeWidth={2.5} color="#3b82f6" />
@@ -947,7 +968,7 @@ const PagosMenuales: React.FC<PagosMenualesProps> = ({ darkMode = false }) => {
                         background: darkMode
                           ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.1))'
                           : 'linear-gradient(135deg, #d1fae5, #a7f3d0)',
-                        border: `1px solid ${darkMode ? 'rgba(16, 185, 129, 0.3)' : '#10b981'}`,
+                        border: `1px solid ${darkMode ? 'rgba(16, 185, 129, 0.3)' : '#10b981'} `,
                         borderRadius: '0.75em',
                         boxShadow: darkMode
                           ? '0 4px 12px rgba(16, 185, 129, 0.1)'
@@ -983,7 +1004,7 @@ const PagosMenuales: React.FC<PagosMenualesProps> = ({ darkMode = false }) => {
                           padding: '0.65em',
                           borderRadius: '0.65em',
                           background: darkMode ? 'rgba(16, 185, 129, 0.08)' : 'rgba(16, 185, 129, 0.12)',
-                          border: `1px solid ${darkMode ? 'rgba(16,185,129,0.25)' : 'rgba(16,185,129,0.3)'}`,
+                          border: `1px solid ${darkMode ? 'rgba(16,185,129,0.25)' : 'rgba(16,185,129,0.3)'} `,
                           color: darkMode ? '#d1fae5' : '#065f46',
                           lineHeight: 1.5
                         }}>
@@ -1054,7 +1075,7 @@ const PagosMenuales: React.FC<PagosMenualesProps> = ({ darkMode = false }) => {
                               padding: '0.625em 1em',
                               backgroundColor: darkMode ? 'rgba(239, 68, 68, 0.2)' : '#fee2e2',
                               color: darkMode ? '#fca5a5' : '#dc2626',
-                              border: `1px solid ${darkMode ? 'rgba(239, 68, 68, 0.4)' : '#fca5a5'}`,
+                              border: `1px solid ${darkMode ? 'rgba(239, 68, 68, 0.4)' : '#fca5a5'} `,
                               borderRadius: '0.625em',
                               fontSize: '0.85rem',
                               fontWeight: '700',
@@ -1090,7 +1111,7 @@ const PagosMenuales: React.FC<PagosMenualesProps> = ({ darkMode = false }) => {
                           background: darkMode ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.8)',
                           borderRadius: '0.65em',
                           padding: '0.65em',
-                          border: `1px dashed ${darkMode ? 'rgba(16,185,129,0.4)' : '#34d399'}`
+                          border: `1px dashed ${darkMode ? 'rgba(16,185,129,0.4)' : '#34d399'} `
                         }}>
                           {decisionTomada && decisionStatus ? (
                             <>
@@ -1138,10 +1159,10 @@ const PagosMenuales: React.FC<PagosMenualesProps> = ({ darkMode = false }) => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5em' }}>
             {cursosAlDia.map((curso) => (
               <div
-                key={`al-dia-${curso.id_matricula}`}
+                key={`al - dia - ${curso.id_matricula} `}
                 style={{
                   backgroundColor: darkMode ? 'rgba(16, 185, 129, 0.08)' : '#ecfdf5',
-                  border: `1px solid ${darkMode ? 'rgba(16, 185, 129, 0.4)' : '#a7f3d0'}`,
+                  border: `1px solid ${darkMode ? 'rgba(16, 185, 129, 0.4)' : '#a7f3d0'} `,
                   borderRadius: '1rem',
                   padding: '1.1em 1.2em',
                   boxShadow: darkMode
@@ -1218,7 +1239,7 @@ const PagosMenuales: React.FC<PagosMenualesProps> = ({ darkMode = false }) => {
                     padding: '0.6em',
                     background: darkMode ? 'rgba(16, 185, 129, 0.12)' : '#d1fae5',
                     borderRadius: '0.65em',
-                    border: `1px solid ${darkMode ? 'rgba(16,185,129,0.3)' : '#a7f3d0'}`
+                    border: `1px solid ${darkMode ? 'rgba(16,185,129,0.3)' : '#a7f3d0'} `
                   }}>
                     <div style={{ fontSize: '0.7rem', color: '#059669', marginBottom: '0.3em', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.25em' }}>
                       <CheckCircle size={12} strokeWidth={2.5} color="#059669" />
@@ -1233,7 +1254,7 @@ const PagosMenuales: React.FC<PagosMenualesProps> = ({ darkMode = false }) => {
                     padding: '0.6em',
                     background: darkMode ? 'rgba(255,255,255,0.05)' : '#fff',
                     borderRadius: '0.65em',
-                    border: `1px solid ${darkMode ? 'rgba(255,255,255,0.1)' : '#e5e7eb'}`
+                    border: `1px solid ${darkMode ? 'rgba(255,255,255,0.1)' : '#e5e7eb'} `
                   }}>
                     <div style={{ fontSize: '0.7rem', color: darkMode ? 'rgba(209,250,229,0.9)' : '#047857', marginBottom: '0.3em', fontWeight: '600' }}>
                       Monto total pagado
@@ -1247,7 +1268,7 @@ const PagosMenuales: React.FC<PagosMenualesProps> = ({ darkMode = false }) => {
                     padding: '0.6em',
                     background: darkMode ? 'rgba(5, 150, 105, 0.18)' : 'rgba(16, 185, 129, 0.12)',
                     borderRadius: '0.65em',
-                    border: `1px solid ${darkMode ? 'rgba(5,150,105,0.35)' : 'rgba(16,185,129,0.3)'}`
+                    border: `1px solid ${darkMode ? 'rgba(5,150,105,0.35)' : 'rgba(16,185,129,0.3)'} `
                   }}>
                     <div style={{ fontSize: '0.7rem', color: darkMode ? '#a7f3d0' : '#065f46', marginBottom: '0.3em', fontWeight: '600' }}>
                       Estado general
@@ -1288,7 +1309,7 @@ const PagosMenuales: React.FC<PagosMenualesProps> = ({ darkMode = false }) => {
               borderRadius: '1rem',
               padding: '1.25rem',
               boxShadow: '0 20px 45px rgba(0,0,0,0.35)',
-              border: `1px solid ${darkMode ? 'rgba(255,255,255,0.1)' : '#e5e7eb'}`
+              border: `1px solid ${darkMode ? 'rgba(255,255,255,0.1)' : '#e5e7eb'} `
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.75rem' }}>
@@ -1315,7 +1336,7 @@ const PagosMenuales: React.FC<PagosMenualesProps> = ({ darkMode = false }) => {
                 style={{
                   padding: '0.55rem 1.2rem',
                   borderRadius: '0.65rem',
-                  border: `1px solid ${darkMode ? 'rgba(255,255,255,0.15)' : '#d1d5db'}`,
+                  border: `1px solid ${darkMode ? 'rgba(255,255,255,0.15)' : '#d1d5db'} `,
                   background: 'transparent',
                   color: darkMode ? '#fff' : '#1f2937',
                   fontWeight: 600,

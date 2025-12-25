@@ -51,8 +51,12 @@ export const useNotifications = (rol: RolUsuario) => {
       }
 
       console.log('useNotifications: Obteniendo notificaciones del servidor...');
-      const response = await fetch(`${(import.meta.env.VITE_API_URL || 'http://localhost:3000')}/api/notificaciones/mis-notificaciones`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+      const response = await fetch(`${(import.meta.env.VITE_API_URL || 'http://localhost:3000')}/api/notificaciones/mis-notificaciones?t=${Date.now()}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Cache-Control': 'no-cache'
+        },
+        cache: 'no-store'
       });
 
       if (response.ok) {

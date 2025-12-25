@@ -531,7 +531,7 @@ const HistorialAcademico: React.FC<HistorialAcademicoProps> = ({ darkMode }) => 
                         color: curso.calificacion >= 7 ? theme.success : theme.warning,
                         marginBottom: '0.25em'
                       }}>
-                        {curso.calificacion != null ? Number(curso.calificacion).toFixed(1) : '0.0'}
+                        {curso.calificacion != null ? Number(curso.calificacion).toFixed(2) : '0.00'}
                       </div>
                       <div style={{
                         fontSize: '0.65rem',
@@ -539,7 +539,7 @@ const HistorialAcademico: React.FC<HistorialAcademicoProps> = ({ darkMode }) => 
                         textTransform: 'uppercase',
                         fontWeight: '600'
                       }}>
-                        Calificación
+                        Promedio
                       </div>
                     </div>
 

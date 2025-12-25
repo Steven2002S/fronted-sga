@@ -9,7 +9,6 @@ import {
   BookOpen,
   FileSpreadsheet,
   ArrowLeft,
-  GraduationCap,
 } from "lucide-react";
 import { useSocket } from "../../hooks/useSocket";
 import { showToast } from "../../config/toastConfig";
@@ -26,6 +25,9 @@ interface Tarea {
   nota_maxima: number;
   id_modulo?: number;
   modulo_nombre?: string;
+  categoria_nombre?: string;
+  categoria_ponderacion?: number;
+  ponderacion?: number;
 }
 
 interface Estudiante {
@@ -52,35 +54,6 @@ const CalificacionesCurso: React.FC<ModalCalificacionesProps> = ({ darkMode }) =
   const cursoId = parseInt(id || "0");
   const [cursoNombre, setCursoNombre] = useState<string>("");
 
-  // Utilidad: convertir un SVG público a PNG dataURL para insertarlo en jsPDF
-  const loadSvgAsPngDataUrl = async (
-    url: string,
-    width = 64,
-    height = 64,
-  ): Promise<string | null> => {
-    try {
-      const res = await fetch(url);
-      const svgText = await res.text();
-      const svgBlob = new Blob([svgText], { type: "image/svg+xml" });
-      const img = new Image();
-      const objectUrl = URL.createObjectURL(svgBlob);
-      await new Promise<void>((resolve, reject) => {
-        img.onload = () => resolve();
-        img.onerror = reject;
-        img.src = objectUrl;
-      });
-      const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return null;
-      ctx.drawImage(img, 0, 0, width, height);
-      URL.revokeObjectURL(objectUrl);
-      return canvas.toDataURL("image/png");
-    } catch {
-      return null;
-    }
-  };
   const loadImageDataUrl = (url: string): Promise<string | null> => {
     return new Promise((resolve) => {
       const img = new Image();
@@ -134,6 +107,12 @@ const CalificacionesCurso: React.FC<ModalCalificacionesProps> = ({ darkMode }) =
       const tareasDelModulo = tareas.filter((tarea) => {
         return tarea.modulo_nombre === moduloActivo;
       });
+
+      // Ordenar por ID de tarea (orden de creación) en lugar de alfabético
+      tareasDelModulo.sort((a, b) => {
+        return a.id_tarea - b.id_tarea;
+      });
+
       setTareasFiltradas(tareasDelModulo);
     }
   }, [moduloActivo, tareas]);
@@ -569,10 +548,22 @@ const CalificacionesCurso: React.FC<ModalCalificacionesProps> = ({ darkMode }) =
         tareasPorModulo[moduloNombre].push(tarea);
       });
 
-      // Fila 1, 2 y 3: Encabezados
+      // Ordenar tareas dentro de cada módulo por categoría
+      Object.keys(tareasPorModulo).forEach(modulo => {
+        tareasPorModulo[modulo].sort((a, b) => {
+          const catA = a.categoria_nombre || 'Sin Categoría';
+          const catB = b.categoria_nombre || 'Sin Categoría';
+          if (catA === catB) return 0;
+          if (catA === 'Sin Categoría') return 1;
+          if (catB === 'Sin Categoría') return -1;
+          return catA.localeCompare(catB);
+        });
+      });
+
+      // Fila 1, 2 y 3: Encabezados modulares
       const row1 = wsDetalle.addRow(['#', 'Apellido', 'Nombre']); // Módulos
-      const row2 = wsDetalle.addRow(['', '', '']); // Tareas
-      const row3 = wsDetalle.addRow(['', '', '']); // Ponderación
+      const row2 = wsDetalle.addRow(['', '', '']); // Categorías (MERGED)
+      const row3 = wsDetalle.addRow(['', '', '']); // Tareas
 
       // Combinar #, Apellido y Nombre (Fila 1, 2 y 3)
       wsDetalle.mergeCells(1, 1, 3, 1); // A1:A3 (#)
@@ -610,15 +601,63 @@ const CalificacionesCurso: React.FC<ModalCalificacionesProps> = ({ darkMode }) =
           wsDetalle.mergeCells(1, colIndex, 1, colIndex + tareasDelModulo.length - 1);
         }
 
-        // Escribir nombres de tareas en Fila 2 y Ponderación en Fila 3
+        // Agrupar por categoría para generar encabezados de Fila 2
+        let currentCategory = "";
+        let categoryStartCol = colIndex;
+        let categoryCount = 0;
+        let categoryPond = 0;
+
+        tareasDelModulo.forEach((tarea, idx) => {
+          const tareaCat = tarea.categoria_nombre || "Sin Categoría";
+          const tareaPond = tarea.categoria_ponderacion || 0;
+
+          // Si cambia la categoría o es el último elemento
+          if (idx === 0) {
+            currentCategory = tareaCat;
+            categoryPond = tareaPond;
+            categoryStartCol = colIndex + idx;
+          }
+
+          if (tareaCat !== currentCategory) {
+            // Cerrar grupo anterior
+            const cellCat = row2.getCell(categoryStartCol);
+            cellCat.value = `${currentCategory} (${categoryPond} pts)`;
+            if (categoryCount > 1) {
+              wsDetalle.mergeCells(2, categoryStartCol, 2, categoryStartCol + categoryCount - 1);
+            }
+
+            // Iniciar nuevo grupo
+            currentCategory = tareaCat;
+            categoryPond = tareaPond;
+            categoryStartCol = colIndex + idx;
+            categoryCount = 0;
+          }
+
+          categoryCount++;
+
+          // Si es el último, cerrar el grupo actual
+          if (idx === tareasDelModulo.length - 1) {
+            const cellCat = row2.getCell(categoryStartCol);
+            cellCat.value = `${currentCategory} (${categoryPond} pts)`;
+            if (categoryCount > 1) {
+              wsDetalle.mergeCells(2, categoryStartCol, 2, categoryStartCol + categoryCount - 1);
+            }
+          }
+        });
+
+        // Escribir nombres de tareas en Fila 3
         tareasDelModulo.forEach((tarea) => {
-          // Fila 2: Título Tarea
-          const cellTarea = row2.getCell(colIndex);
-          cellTarea.value = tarea.titulo;
+          // Fila 3: Título Tarea
+          const cellTarea = row3.getCell(colIndex);
+          cellTarea.value = `${tarea.titulo} (/${tarea.nota_maxima})`;
 
           // Fila 3: Ponderación
           const cellPonderacion = row3.getCell(colIndex);
-          cellPonderacion.value = `${tarea.ponderacion || 0} pts`;
+          if (tarea.categoria_nombre) {
+            cellPonderacion.value = `Cat: ${tarea.categoria_nombre} (${tarea.categoria_ponderacion} pts)`;
+          } else {
+            cellPonderacion.value = `${tarea.ponderacion || 0} pts`;
+          }
           cellPonderacion.font = { italic: true, size: 9, color: { argb: 'FF666666' } };
           cellPonderacion.alignment = { horizontal: 'center' };
 
@@ -890,7 +929,7 @@ const CalificacionesCurso: React.FC<ModalCalificacionesProps> = ({ darkMode }) =
     ).length;
     const reprobados = filteredEstudiantes.length - aprobados;
     const promedioGeneral =
-      filteredEstudiantes.reduce((sum, est) => sum + est.promedio, 0) /
+      filteredEstudiantes.reduce((sum, est) => sum + (parseFloat(String(est.promedio_global)) || 0), 0) /
       filteredEstudiantes.length;
 
     return {
@@ -1622,90 +1661,158 @@ const CalificacionesCurso: React.FC<ModalCalificacionesProps> = ({ darkMode }) =
                     }}
                   >
                     <thead>
-                      <tr
-                        style={{
-                          background: darkMode
-                            ? "rgba(255,255,255,0.05)"
-                            : "rgba(0,0,0,0.02)",
-                          borderBottom: `2px solid ${theme.border}`,
-                        }}
-                      >
-                        <th
-                          style={{
-                            padding: "0.75rem 1rem",
-                            textAlign: "left",
-                            color: theme.textPrimary,
-                            fontWeight: "600",
-                            background: darkMode
-                              ? "rgba(255, 255, 255, 0.05)"
-                              : "rgba(0, 0, 0, 0.02)",
-                            position: "sticky",
-                            left: 0,
-                            zIndex: 10,
-                          }}
-                        >
-                          Estudiante
-                        </th>
-                        {moduloActivo !== "todos" && tareasFiltradas.map((tarea) => (
-                          <th
-                            key={tarea.id_tarea}
+                      {moduloActivo !== "todos" ? (
+                        <>
+                          <tr
                             style={{
-                              padding: "0.75rem 1rem",
-                              textAlign: "center",
-                              color: theme.textPrimary,
-                              fontWeight: "600",
-                              minWidth: "80px",
+                              background: darkMode
+                                ? "rgba(255,255,255,0.05)"
+                                : "rgba(0,0,0,0.02)",
+                              borderBottom: `2px solid ${theme.border}`,
                             }}
                           >
-                            <div style={{ marginBottom: "0.25rem" }}>
-                              {tarea.titulo}
-                            </div>
-                            <div
+                            <th
+                              rowSpan={2}
                               style={{
-                                fontSize: "0.75rem",
-                                color: theme.textMuted,
-                                fontWeight: "500",
+                                padding: "0.75rem 1rem",
+                                textAlign: "left",
+                                color: theme.textPrimary,
+                                fontWeight: "600",
+                                background: darkMode
+                                  ? "rgba(255, 255, 255, 0.05)"
+                                  : "rgba(0, 0, 0, 0.02)",
+                                position: "sticky",
+                                left: 0,
+                                zIndex: 10,
+                                borderBottom: `2px solid ${theme.border}`
                               }}
                             >
-                              /{tarea.nota_maxima}
-                            </div>
-                          </th>
-                        ))}
-                        {/* Columna de Promedio del Módulo Activo (si no es "todos") */}
-                        {moduloActivo !== "todos" && (
+                              Estudiante
+                            </th>
+                            {(() => {
+                              const groups = tareasFiltradas.reduce((acc: any, t) => {
+                                const key = t.categoria_nombre || 'Sin Categoría';
+                                const pond = t.categoria_ponderacion || 0;
+                                const id = `${key}|${pond}`;
+                                if (!acc[id]) acc[id] = { name: key, pond, count: 0 };
+                                acc[id].count++;
+                                return acc;
+                              }, {});
+                              return Object.values(groups).map((g: any, i) => (
+                                <th
+                                  key={i}
+                                  colSpan={g.count}
+                                  style={{
+                                    padding: "0.5rem",
+                                    textAlign: "center",
+                                    color: theme.info,
+                                    borderBottom: `1px solid ${theme.border}`,
+                                    background: darkMode
+                                      ? "rgba(255,255,255,0.02)"
+                                      : "rgba(0,0,0,0.01)",
+                                  }}
+                                >
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                                    <Award size={14} />
+                                    <span style={{ fontWeight: '700', fontSize: '0.85rem' }}>{g.name}</span>
+                                    <span style={{ fontSize: '0.75rem', fontWeight: '400', color: theme.textMuted }}>({g.pond} pts)</span>
+                                  </div>
+                                </th>
+                              ));
+                            })()}
+                            <th
+                              rowSpan={2}
+                              style={{
+                                padding: "0.75rem 1rem",
+                                textAlign: "center",
+                                color: theme.textPrimary,
+                                fontWeight: "600",
+                                background: darkMode
+                                  ? "rgba(245, 158, 11, 0.1)"
+                                  : "rgba(245, 158, 11, 0.05)",
+                                minWidth: "100px",
+                                borderBottom: `2px solid ${theme.border}`
+                              }}
+                            >
+                              <div style={{ marginBottom: "0.25rem" }}>
+                                Promedio {moduloActivo}
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: "0.7rem",
+                                  color: theme.textMuted,
+                                  fontWeight: "500",
+                                }}
+                              >
+                                /
+                                {typeof pesoPorModulo === "number"
+                                  ? pesoPorModulo.toFixed(2)
+                                  : "0.00"}{" "}
+                                pts
+                              </div>
+                            </th>
+                          </tr>
+                          <tr
+                            style={{
+                              background: darkMode
+                                ? "rgba(255,255,255,0.05)"
+                                : "rgba(0,0,0,0.02)",
+                              borderBottom: `2px solid ${theme.border}`,
+                            }}
+                          >
+                            {tareasFiltradas.map((tarea) => (
+                              <th
+                                key={tarea.id_tarea}
+                                style={{
+                                  padding: "0.75rem 1rem",
+                                  textAlign: "center",
+                                  color: theme.textPrimary,
+                                  fontWeight: "600",
+                                  minWidth: "80px",
+                                }}
+                              >
+                                <div style={{ marginBottom: "0.25rem" }}>
+                                  {tarea.titulo}
+                                </div>
+                                <div
+                                  style={{
+                                    fontSize: "0.75rem",
+                                    color: theme.textMuted,
+                                    fontWeight: "500",
+                                  }}
+                                >
+                                  /{tarea.nota_maxima}
+                                </div>
+                              </th>
+                            ))}
+                          </tr>
+                        </>
+                      ) : (
+                        <tr
+                          style={{
+                            background: darkMode
+                              ? "rgba(255,255,255,0.05)"
+                              : "rgba(0,0,0,0.02)",
+                            borderBottom: `2px solid ${theme.border}`,
+                          }}
+                        >
                           <th
                             style={{
                               padding: "0.75rem 1rem",
-                              textAlign: "center",
+                              textAlign: "left",
                               color: theme.textPrimary,
                               fontWeight: "600",
                               background: darkMode
-                                ? "rgba(245, 158, 11, 0.1)"
-                                : "rgba(245, 158, 11, 0.05)",
-                              minWidth: "100px",
+                                ? "rgba(255, 255, 255, 0.05)"
+                                : "rgba(0, 0, 0, 0.02)",
+                              position: "sticky",
+                              left: 0,
+                              zIndex: 10,
                             }}
                           >
-                            <div style={{ marginBottom: "0.25rem" }}>
-                              Promedio {moduloActivo}
-                            </div>
-                            <div
-                              style={{
-                                fontSize: "0.7rem",
-                                color: theme.textMuted,
-                                fontWeight: "500",
-                              }}
-                            >
-                              /
-                              {typeof pesoPorModulo === "number"
-                                ? pesoPorModulo.toFixed(2)
-                                : "0.00"}{" "}
-                              pts
-                            </div>
+                            Estudiante
                           </th>
-                        )}
-                        {/* Columnas de Promedio por Módulo (solo si está en vista "todos") */}
-                        {moduloActivo === "todos" &&
-                          modulos.map((modulo, idx) => (
+                          {modulos.map((modulo, idx) => (
                             <th
                               key={`modulo-${idx}`}
                               style={{
@@ -1737,8 +1844,6 @@ const CalificacionesCurso: React.FC<ModalCalificacionesProps> = ({ darkMode }) =
                               </div>
                             </th>
                           ))}
-                        {/* Columna Promedio Global (solo en vista "todos") */}
-                        {moduloActivo === "todos" && (
                           <th
                             style={{
                               padding: "0.75rem 1rem",
@@ -1764,8 +1869,8 @@ const CalificacionesCurso: React.FC<ModalCalificacionesProps> = ({ darkMode }) =
                               /10 pts
                             </div>
                           </th>
-                        )}
-                      </tr>
+                        </tr>
+                      )}
                     </thead>
                     <tbody>
                       {filteredEstudiantes.map((estudiante, idx) => (

@@ -37,6 +37,8 @@ interface Calificacion {
   resultado?: string;
   fecha_entrega?: string | null; // Nuevo campo
   fecha_limite?: string; // Nuevo campo (si el backend lo envía)
+  categoria_nombre?: string;
+  categoria_ponderacion?: number;
 }
 
 interface ModuloConPromedio {
@@ -858,299 +860,347 @@ const Calificaciones: React.FC<{ darkMode: boolean }> = ({ darkMode: darkModePro
                               {/* Tareas del Módulo (expandible) */}
                               {isModuloExpanded && (
                                 <div style={{ padding: "0.5rem" }}>
-                                  {modulo.calificaciones.map((calificacion) => {
-                                    const tieneNota = calificacion.nota !== null && calificacion.nota !== undefined;
-                                    const fueEntregada = !!calificacion.fecha_entrega;
-                                    const fechaLimite = calificacion.fecha_limite ? new Date(calificacion.fecha_limite) : null;
-                                    const fechaEntrega = calificacion.fecha_entrega ? new Date(calificacion.fecha_entrega) : null;
-                                    const fechaActual = new Date();
-                                    const estaVencida = !fueEntregada && fechaLimite && fechaActual > fechaLimite;
-                                    const esEntregaTardia = fueEntregada && fechaLimite && fechaEntrega && fechaEntrega > fechaLimite;
+                                  {/* Agrupar tareas por categoría */}
+                                  {(() => {
+                                    const calificaciones = modulo.calificaciones || [];
+                                    const calificacionesPorCategoria = calificaciones.reduce((acc, cal) => {
+                                      const key = cal.categoria_nombre
+                                        ? `${cal.categoria_nombre}|${cal.categoria_ponderacion}`
+                                        : 'Sin Categoría|0';
+                                      if (!acc[key]) acc[key] = [];
+                                      acc[key].push(cal);
+                                      return acc;
+                                    }, {} as Record<string, typeof calificaciones>);
 
-                                    // Determinar estado para mostrar
-                                    let estadoUI = null;
+                                    return Object.entries(calificacionesPorCategoria).map(([key, cals]) => {
+                                      const [nombreCat, ponderacionCat] = key.split('|');
 
-                                    if (tieneNota) {
-                                      // Render normal con nota
-                                      estadoUI = (
-                                        <div
-                                          style={{
-                                            background:
-                                              getColorByGrade(
-                                                parseFloat(calificacion.nota as any) || 0,
-                                              ) + "20",
-                                            border: `1px solid ${getColorByGrade(parseFloat(calificacion.nota as any) || 0)}30`,
-                                            borderRadius: "0.5rem",
-                                            padding: "0.25rem 0.75rem",
-                                            marginLeft: "0.5rem",
-                                          }}
-                                        >
-                                          <span
-                                            style={{
-                                              color: getColorByGrade(
-                                                parseFloat(calificacion.nota as any) || 0,
-                                              ),
-                                              fontWeight: "700",
-                                              fontSize: "1rem",
-                                            }}
-                                          >
-                                            {(
-                                              parseFloat(calificacion.nota as any) || 0
-                                            ).toFixed(1)}
-                                          </span>
-                                          <span
-                                            style={{
-                                              color: theme.textMuted,
-                                              marginLeft: "0.25rem",
-                                              fontSize: "0.85rem",
-                                            }}
-                                          >
-                                            /
-                                            {parseFloat(
-                                              calificacion.nota_maxima as any,
-                                            ) || 10}
-                                          </span>
-                                          {calificacion.ponderacion && (
-                                            <span
-                                              style={{
-                                                color: theme.textMuted,
-                                                fontSize: "0.75rem",
-                                                marginLeft: "0.5rem",
-                                                borderLeft: `1px solid ${theme.border}`,
-                                                paddingLeft: "0.5rem"
-                                              }}
-                                            >
-                                              Peso: {calificacion.ponderacion}pts
-                                            </span>
-                                          )}
-                                        </div>
-                                      );
-                                    } else if (fueEntregada) {
-                                      if (esEntregaTardia) {
-                                        // Entregada con retraso y sin calificar
-                                        estadoUI = (
-                                          <div
-                                            style={{
-                                              background: darkMode ? "rgba(245, 158, 11, 0.2)" : "rgba(245, 158, 11, 0.1)",
-                                              border: `1px solid ${darkMode ? "rgba(245, 158, 11, 0.4)" : "rgba(245, 158, 11, 0.3)"}`,
-                                              borderRadius: "0.5rem",
-                                              padding: "0.25rem 0.75rem",
-                                              display: "flex",
-                                              alignItems: "center",
-                                              gap: "0.5rem"
-                                            }}
-                                          >
-                                            <AlertCircle size={16} color="#f59e0b" />
-                                            <span style={{ color: "#f59e0b", fontSize: "0.85rem", fontWeight: "600" }}>
-                                              Entregada con Retraso
-                                            </span>
-                                          </div>
-                                        );
-                                      } else {
-                                        // Pendiente de calificar (a tiempo)
-                                        estadoUI = (
-                                          <div
-                                            style={{
-                                              background: darkMode ? "rgba(59, 130, 246, 0.2)" : "rgba(59, 130, 246, 0.1)",
-                                              border: `1px solid ${darkMode ? "rgba(59, 130, 246, 0.4)" : "rgba(59, 130, 246, 0.3)"}`,
-                                              borderRadius: "0.5rem",
-                                              padding: "0.25rem 0.75rem",
-                                              display: "flex",
-                                              alignItems: "center",
-                                              gap: "0.5rem"
-                                            }}
-                                          >
-                                            <Clock size={16} color="#3b82f6" />
-                                            <span style={{ color: "#3b82f6", fontSize: "0.85rem", fontWeight: "600" }}>
-                                              Pendiente de Calificar
-                                            </span>
-                                          </div>
-                                        );
-                                      }
-                                    } else if (estaVencida) {
-                                      // Vencida sin entrega
-                                      estadoUI = (
-                                        <div
-                                          style={{
-                                            background: darkMode ? "rgba(239, 68, 68, 0.2)" : "rgba(239, 68, 68, 0.1)",
-                                            border: `1px solid ${darkMode ? "rgba(239, 68, 68, 0.4)" : "rgba(239, 68, 68, 0.3)"}`,
-                                            borderRadius: "0.5rem",
-                                            padding: "0.25rem 0.75rem",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            gap: "0.5rem"
-                                          }}
-                                        >
-                                          <AlertCircle size={16} color="#ef4444" />
-                                          <span style={{ color: "#ef4444", fontSize: "0.85rem", fontWeight: "600" }}>
-                                            No Entregada / Vencida
-                                          </span>
-                                        </div>
-                                      );
-                                    } else {
-                                      // Pendiente de entrega (aun a tiempo)
-                                      estadoUI = (
-                                        <div
-                                          style={{
-                                            background: darkMode ? "rgba(107, 114, 128, 0.2)" : "rgba(107, 114, 128, 0.1)",
-                                            border: `1px solid ${theme.border}`,
-                                            borderRadius: "0.5rem",
-                                            padding: "0.25rem 0.75rem",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            gap: "0.5rem"
-                                          }}
-                                        >
-                                          <Clock size={16} color={theme.textMuted} />
-                                          <span style={{ color: theme.textMuted, fontSize: "0.85rem", fontWeight: "500" }}>
-                                            Pendiente de Entrega
-                                          </span>
-                                        </div>
-                                      );
-                                    }
-
-                                    return (
-                                      <div
-                                        key={calificacion.id_calificacion || `tarea-${calificacion.id_tarea}`}
-                                        style={{
-                                          background: darkMode
-                                            ? "rgba(255,255,255,0.02)"
-                                            : "rgba(255,255,255,0.5)",
-                                          border: `1px solid ${theme.border}`,
-                                          borderRadius: "0.5rem",
-                                          padding: "0.875rem",
-                                          marginBottom: "0.5rem",
-                                        }}
-                                      >
-                                        <div
-                                          style={{
-                                            display: "flex",
-                                            justifyContent: "space-between",
-                                            alignItems: "flex-start",
-                                            marginBottom: "0.5rem",
-                                          }}
-                                        >
-                                          <div style={{ flex: 1 }}>
-                                            <h5
-                                              style={{
+                                      return (
+                                        <div key={key}>
+                                          {nombreCat !== 'Sin Categoría' && (
+                                            <div style={{
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              gap: '0.75rem',
+                                              marginBottom: '1rem',
+                                              marginTop: '1.5rem',
+                                              padding: '0.75rem 1rem',
+                                              background: darkMode ? 'rgba(251, 191, 36, 0.1)' : 'rgba(251, 191, 36, 0.05)',
+                                              borderLeft: `4px solid ${theme.accent}`,
+                                              borderRadius: '0 0.5rem 0.5rem 0',
+                                              boxShadow: darkMode ? 'none' : '0 2px 4px rgba(0,0,0,0.05)',
+                                            }}>
+                                              <Award size={20} color={theme.accent} />
+                                              <h5 style={{
+                                                margin: 0,
+                                                fontSize: '1rem',
+                                                fontWeight: '800',
                                                 color: theme.textPrimary,
-                                                fontSize: "0.95rem",
-                                                fontWeight: "600",
-                                                margin: 0,
-                                              }}
-                                            >
-                                              {calificacion.tarea_titulo}
-                                            </h5>
-                                          </div>
-                                          {estadoUI}
-                                        </div>
-
-                                        {calificacion.comentario_docente && (
-                                          <div
-                                            style={{
-                                              background: darkMode
-                                                ? "rgba(255,255,255,0.02)"
-                                                : "rgba(0,0,0,0.01)",
-                                              border: `1px solid ${theme.border}`,
-                                              borderRadius: "0.5rem",
-                                              padding: "0.625rem",
-                                              marginTop: "0.5rem",
-                                            }}
-                                          >
-                                            <p
-                                              style={{
-                                                color: theme.textSecondary,
-                                                margin: 0,
-                                                fontStyle: "italic",
-                                                fontSize: "0.85rem",
-                                              }}
-                                            >
-                                              "{calificacion.comentario_docente}"
-                                            </p>
-                                          </div>
-                                        )}
-
-                                        <div
-                                          style={{
-                                            display: "flex",
-                                            justifyContent: "space-between",
-                                            alignItems: "center",
-                                            marginTop: "0.625rem",
-                                            paddingTop: "0.625rem",
-                                            borderTop: `1px solid ${theme.border}`,
-                                          }}
-                                        >
-                                          <div
-                                            style={{
-                                              display: "flex",
-                                              alignItems: "center",
-                                              gap: "0.5rem",
-                                            }}
-                                          >
-                                            <Calendar
-                                              size={14}
-                                              color={theme.textMuted}
-                                            />
-                                            <span
-                                              style={{
-                                                color: theme.textMuted,
-                                                fontSize: "0.8rem",
-                                              }}
-                                            >
-                                              {tieneNota && calificacion.fecha_calificacion ? (
-                                                `Calificado: ${new Date(calificacion.fecha_calificacion).toLocaleDateString("es-ES")}`
-                                              ) : (
-                                                calificacion.fecha_limite ? `Vence: ${new Date(calificacion.fecha_limite).toLocaleDateString("es-ES")}` : "Sin fecha límite"
-                                              )}
-                                            </span>
-                                          </div>
-
-                                          {/* Mostrar calificación relativa solo si tiene nota */}
-                                          {tieneNota && (
-                                            <div
-                                              style={{
-                                                background:
-                                                  getColorByGrade(
-                                                    ((parseFloat(calificacion.nota as any) ||
-                                                      0) /
-                                                      (parseFloat(
-                                                        calificacion.nota_maxima as any,
-                                                      ) || 10)) *
-                                                    10,
-                                                  ) + "20",
-                                                borderRadius: "0.5rem",
-                                                padding: "0.2rem 0.5rem",
-                                              }}
-                                            >
-                                              <span
-                                                style={{
-                                                  color: getColorByGrade(
-                                                    ((parseFloat(calificacion.nota as any) ||
-                                                      0) /
-                                                      (parseFloat(
-                                                        calificacion.nota_maxima as any,
-                                                      ) || 10)) *
-                                                    10,
-                                                  ),
-                                                  fontSize: "0.75rem",
-                                                  fontWeight: "600",
-                                                }}
-                                              >
-                                                {getGradeLabel(
-                                                  ((parseFloat(calificacion.nota as any) ||
-                                                    0) /
-                                                    (parseFloat(
-                                                      calificacion.nota_maxima as any,
-                                                    ) || 10)) *
-                                                  10,
-                                                )}
-                                              </span>
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.05em',
+                                                flex: 1
+                                              }}>
+                                                {nombreCat}
+                                              </h5>
+                                              <div style={{
+                                                background: theme.accent,
+                                                color: '#fff',
+                                                padding: '0.25rem 0.75rem',
+                                                borderRadius: '1rem',
+                                                fontSize: '0.75rem',
+                                                fontWeight: '700',
+                                                boxShadow: '0 2px 4px rgba(251, 191, 36, 0.3)'
+                                              }}>
+                                                {ponderacionCat} pts
+                                              </div>
                                             </div>
                                           )}
+
+                                          {cals.map((calificacion) => {
+                                            const tieneNota = calificacion.nota !== null && calificacion.nota !== undefined;
+                                            const fueEntregada = !!calificacion.fecha_entrega;
+                                            const fechaLimite = calificacion.fecha_limite ? new Date(calificacion.fecha_limite) : null;
+                                            const fechaEntrega = calificacion.fecha_entrega ? new Date(calificacion.fecha_entrega) : null;
+                                            const fechaActual = new Date();
+                                            const estaVencida = !fueEntregada && fechaLimite && fechaActual > fechaLimite;
+                                            const esEntregaTardia = fueEntregada && fechaLimite && fechaEntrega && fechaEntrega > fechaLimite;
+
+                                            // Determinar estado para mostrar
+                                            let estadoUI = null;
+
+                                            if (tieneNota) {
+                                              // Render normal con nota
+                                              estadoUI = (
+                                                <div
+                                                  style={{
+                                                    background:
+                                                      getColorByGrade(
+                                                        parseFloat(calificacion.nota as any) || 0,
+                                                      ) + "20",
+                                                    border: `1px solid ${getColorByGrade(parseFloat(calificacion.nota as any) || 0)}30`,
+                                                    borderRadius: "0.5rem",
+                                                    padding: "0.25rem 0.75rem",
+                                                    marginLeft: "0.5rem",
+                                                  }}
+                                                >
+                                                  <span
+                                                    style={{
+                                                      color: getColorByGrade(
+                                                        parseFloat(calificacion.nota as any) || 0,
+                                                      ),
+                                                      fontWeight: "700",
+                                                      fontSize: "1rem",
+                                                    }}
+                                                  >
+                                                    {(
+                                                      parseFloat(calificacion.nota as any) || 0
+                                                    ).toFixed(1)}
+                                                  </span>
+                                                  <span
+                                                    style={{
+                                                      color: theme.textMuted,
+                                                      marginLeft: "0.25rem",
+                                                      fontSize: "0.85rem",
+                                                    }}
+                                                  >
+                                                    /
+                                                    {parseFloat(
+                                                      calificacion.nota_maxima as any,
+                                                    ) || 10}
+                                                  </span>
+                                                  {/* Eliminado info de categoría redundante aqui */}
+                                                </div>
+                                              );
+                                            } else if (fueEntregada) {
+                                              if (esEntregaTardia) {
+                                                // Entregada con retraso y sin calificar
+                                                estadoUI = (
+                                                  <div
+                                                    style={{
+                                                      background: darkMode ? "rgba(245, 158, 11, 0.2)" : "rgba(245, 158, 11, 0.1)",
+                                                      border: `1px solid ${darkMode ? "rgba(245, 158, 11, 0.4)" : "rgba(245, 158, 11, 0.3)"}`,
+                                                      borderRadius: "0.5rem",
+                                                      padding: "0.25rem 0.75rem",
+                                                      display: "flex",
+                                                      alignItems: "center",
+                                                      gap: "0.5rem"
+                                                    }}
+                                                  >
+                                                    <AlertCircle size={16} color="#f59e0b" />
+                                                    <span style={{ color: "#f59e0b", fontSize: "0.85rem", fontWeight: "600" }}>
+                                                      Entregada con Retraso
+                                                    </span>
+                                                  </div>
+                                                );
+                                              } else {
+                                                // Pendiente de calificar (a tiempo)
+                                                estadoUI = (
+                                                  <div
+                                                    style={{
+                                                      background: darkMode ? "rgba(59, 130, 246, 0.2)" : "rgba(59, 130, 246, 0.1)",
+                                                      border: `1px solid ${darkMode ? "rgba(59, 130, 246, 0.4)" : "rgba(59, 130, 246, 0.3)"}`,
+                                                      borderRadius: "0.5rem",
+                                                      padding: "0.25rem 0.75rem",
+                                                      display: "flex",
+                                                      alignItems: "center",
+                                                      gap: "0.5rem"
+                                                    }}
+                                                  >
+                                                    <Clock size={16} color="#3b82f6" />
+                                                    <span style={{ color: "#3b82f6", fontSize: "0.85rem", fontWeight: "600" }}>
+                                                      Pendiente de Calificar
+                                                    </span>
+                                                  </div>
+                                                );
+                                              }
+                                            } else if (estaVencida) {
+                                              // Vencida sin entrega
+                                              estadoUI = (
+                                                <div
+                                                  style={{
+                                                    background: darkMode ? "rgba(239, 68, 68, 0.2)" : "rgba(239, 68, 68, 0.1)",
+                                                    border: `1px solid ${darkMode ? "rgba(239, 68, 68, 0.4)" : "rgba(239, 68, 68, 0.3)"}`,
+                                                    borderRadius: "0.5rem",
+                                                    padding: "0.25rem 0.75rem",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    gap: "0.5rem"
+                                                  }}
+                                                >
+                                                  <AlertCircle size={16} color="#ef4444" />
+                                                  <span style={{ color: "#ef4444", fontSize: "0.85rem", fontWeight: "600" }}>
+                                                    No Entregada / Vencida
+                                                  </span>
+                                                </div>
+                                              );
+                                            } else {
+                                              // Pendiente de entrega (aun a tiempo)
+                                              estadoUI = (
+                                                <div
+                                                  style={{
+                                                    background: darkMode ? "rgba(107, 114, 128, 0.2)" : "rgba(107, 114, 128, 0.1)",
+                                                    border: `1px solid ${theme.border}`,
+                                                    borderRadius: "0.5rem",
+                                                    padding: "0.25rem 0.75rem",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    gap: "0.5rem"
+                                                  }}
+                                                >
+                                                  <Clock size={16} color={theme.textMuted} />
+                                                  <span style={{ color: theme.textMuted, fontSize: "0.85rem", fontWeight: "500" }}>
+                                                    Pendiente de Entrega
+                                                  </span>
+                                                </div>
+                                              );
+                                            }
+
+                                            return (
+                                              <div
+                                                key={calificacion.id_calificacion || `tarea-${calificacion.id_tarea}`}
+                                                style={{
+                                                  background: darkMode
+                                                    ? "rgba(255,255,255,0.02)"
+                                                    : "rgba(255,255,255,0.5)",
+                                                  border: `1px solid ${theme.border}`,
+                                                  borderRadius: "0.5rem",
+                                                  padding: "0.875rem",
+                                                  marginBottom: "0.5rem",
+                                                }}
+                                              >
+                                                <div
+                                                  style={{
+                                                    display: "flex",
+                                                    justifyContent: "space-between",
+                                                    alignItems: "flex-start",
+                                                    marginBottom: "0.5rem",
+                                                  }}
+                                                >
+                                                  <div style={{ flex: 1 }}>
+                                                    <h5
+                                                      style={{
+                                                        color: theme.textPrimary,
+                                                        fontSize: "0.95rem",
+                                                        fontWeight: "600",
+                                                        margin: 0,
+                                                      }}
+                                                    >
+                                                      {calificacion.tarea_titulo}
+                                                    </h5>
+                                                  </div>
+                                                  {estadoUI}
+                                                </div>
+
+                                                {calificacion.comentario_docente && (
+                                                  <div
+                                                    style={{
+                                                      background: darkMode
+                                                        ? "rgba(255,255,255,0.02)"
+                                                        : "rgba(0,0,0,0.01)",
+                                                      border: `1px solid ${theme.border}`,
+                                                      borderRadius: "0.5rem",
+                                                      padding: "0.625rem",
+                                                      marginTop: "0.5rem",
+                                                    }}
+                                                  >
+                                                    <p
+                                                      style={{
+                                                        color: theme.textSecondary,
+                                                        margin: 0,
+                                                        fontStyle: "italic",
+                                                        fontSize: "0.85rem",
+                                                      }}
+                                                    >
+                                                      "{calificacion.comentario_docente}"
+                                                    </p>
+                                                  </div>
+                                                )}
+
+                                                <div
+                                                  style={{
+                                                    display: "flex",
+                                                    justifyContent: "space-between",
+                                                    alignItems: "center",
+                                                    marginTop: "0.625rem",
+                                                    paddingTop: "0.625rem",
+                                                    borderTop: `1px solid ${theme.border}`,
+                                                  }}
+                                                >
+                                                  <div
+                                                    style={{
+                                                      display: "flex",
+                                                      alignItems: "center",
+                                                      gap: "0.5rem",
+                                                    }}
+                                                  >
+                                                    <Calendar
+                                                      size={14}
+                                                      color={theme.textMuted}
+                                                    />
+                                                    <span
+                                                      style={{
+                                                        color: theme.textMuted,
+                                                        fontSize: "0.8rem",
+                                                      }}
+                                                    >
+                                                      {tieneNota && calificacion.fecha_calificacion ? (
+                                                        `Calificado: ${new Date(calificacion.fecha_calificacion).toLocaleDateString("es-ES")}`
+                                                      ) : (
+                                                        calificacion.fecha_limite ? `Vence: ${new Date(calificacion.fecha_limite).toLocaleDateString("es-ES")}` : "Sin fecha límite"
+                                                      )}
+                                                    </span>
+                                                  </div>
+
+                                                  {/* Mostrar calificación relativa solo si tiene nota */}
+                                                  {tieneNota && (
+                                                    <div
+                                                      style={{
+                                                        background:
+                                                          getColorByGrade(
+                                                            ((parseFloat(calificacion.nota as any) ||
+                                                              0) /
+                                                              (parseFloat(
+                                                                calificacion.nota_maxima as any,
+                                                              ) || 10)) *
+                                                            10,
+                                                          ) + "20",
+                                                        borderRadius: "0.5rem",
+                                                        padding: "0.2rem 0.5rem",
+                                                      }}
+                                                    >
+                                                      <span
+                                                        style={{
+                                                          color: getColorByGrade(
+                                                            ((parseFloat(calificacion.nota as any) ||
+                                                              0) /
+                                                              (parseFloat(
+                                                                calificacion.nota_maxima as any,
+                                                              ) || 10)) *
+                                                            10,
+                                                          ),
+                                                          fontSize: "0.75rem",
+                                                          fontWeight: "600",
+                                                        }}
+                                                      >
+                                                        {getGradeLabel(
+                                                          ((parseFloat(calificacion.nota as any) ||
+                                                            0) /
+                                                            (parseFloat(
+                                                              calificacion.nota_maxima as any,
+                                                            ) || 10)) *
+                                                          10,
+                                                        )}
+                                                      </span>
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              </div>
+                                            )
+                                          })}
                                         </div>
-                                      </div>
-                                    )
-                                  })}
+                                      );
+                                    });
+                                  })()}
                                 </div>
                               )}
                             </div>

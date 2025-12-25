@@ -136,13 +136,15 @@ const ModalPagoMensualidad: React.FC<ModalPagoMensualidadProps> = ({ cuota, onCl
         }
 
         // Verificar que no exceda el monto total del curso
+        // NOTA: Calcular meses restantes desde la cuota actual
         const duracionCurso = cuota.meses_duracion || 12; // Por defecto 12 meses si no está definido
-        const montoTotalCurso = MONTO_BASE * duracionCurso;
+        const mesesRestantes = duracionCurso - cuota.numero_cuota + 1; // Desde la cuota actual hasta el final
+        const montoTotalCurso = MONTO_BASE * mesesRestantes;
 
         if (montoNumerico > montoTotalCurso) {
           throw new Error(
-            `El monto máximo para este curso es $${montoTotalCurso} (${duracionCurso} meses completos).\n` +
-            `No puedes pagar más de la duración total del curso.`
+            `El monto máximo para este curso es $${montoTotalCurso} (${mesesRestantes} ${mesesRestantes === 1 ? 'mes restante' : 'meses restantes'}).\n` +
+            `Estás en la cuota ${cuota.numero_cuota} de ${duracionCurso}.`
           );
         }
       }
@@ -459,7 +461,7 @@ const ModalPagoMensualidad: React.FC<ModalPagoMensualidadProps> = ({ cuota, onCl
                   type="number"
                   step={cuota.modalidad_pago === 'mensual' ? '90' : (cuota.modalidad_pago === 'clases' ? pasoClases : '0.01')}
                   min={cuota.modalidad_pago === 'mensual' ? '90' : (cuota.modalidad_pago === 'clases' ? pasoClases : '0.01')}
-                  max={cuota.modalidad_pago === 'mensual' ? (90 * (cuota.meses_duracion || 12)) : undefined}
+                  max={cuota.modalidad_pago === 'mensual' ? (90 * ((cuota.meses_duracion || 12) - cuota.numero_cuota + 1)) : undefined}
                   value={montoPagar}
                   readOnly={false}
                   onChange={(e) => {
@@ -536,7 +538,7 @@ const ModalPagoMensualidad: React.FC<ModalPagoMensualidadProps> = ({ cuota, onCl
                   onClick={() => {
                     const montoActual = parseFloat(montoPagar) || 0;
                     const paso = cuota.modalidad_pago === 'mensual' ? 90 : (cuota.modalidad_pago === 'clases' ? montoPorClase : 0.01);
-                    const maxMonto = cuota.modalidad_pago === 'mensual' ? (90 * (cuota.meses_duracion || 12)) : undefined;
+                    const maxMonto = cuota.modalidad_pago === 'mensual' ? (90 * ((cuota.meses_duracion || 12) - cuota.numero_cuota + 1)) : undefined;
                     const nuevoMonto = montoActual + paso;
 
                     if (maxMonto && nuevoMonto > maxMonto) {
@@ -579,7 +581,7 @@ const ModalPagoMensualidad: React.FC<ModalPagoMensualidadProps> = ({ cuota, onCl
                 <Info size={12} style={{ flexShrink: 0, marginTop: '0.0625em' }} />
                 <span>
                   {cuota.modalidad_pago === 'mensual'
-                    ? `Solo múltiplos de $90 (90, 180, 270...) hasta $${90 * (cuota.meses_duracion || 12)} máximo (${cuota.meses_duracion || 12} meses)`
+                    ? `Solo múltiplos de $90 (90, 180, 270...) hasta $${90 * ((cuota.meses_duracion || 12) - cuota.numero_cuota + 1)} máximo (${(cuota.meses_duracion || 12) - cuota.numero_cuota + 1} ${((cuota.meses_duracion || 12) - cuota.numero_cuota + 1) === 1 ? 'mes restante' : 'meses restantes'})`
                     : cuota.modalidad_pago === 'clases'
                       ? `Puedes pagar múltiplos de ${formatearMonto(montoPorClase)} (1 clase = ${formatearMonto(montoPorClase)}, 2 clases = ${formatearMonto(montoPorClase * 2)}, ...)`
                       : 'Puedes pagar más del monto de la cuota para adelantar pagos'}

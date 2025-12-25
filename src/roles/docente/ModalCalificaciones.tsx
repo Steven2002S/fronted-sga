@@ -27,6 +27,8 @@ interface Tarea {
   nota_maxima: number;
   id_modulo?: number;
   modulo_nombre?: string;
+  categoria_nombre?: string;
+  categoria_ponderacion?: number;
 }
 
 interface Estudiante {
@@ -122,6 +124,17 @@ const ModalCalificaciones: React.FC<ModalCalificacionesProps> = ({
       const tareasDelModulo = tareas.filter((tarea) => {
         return tarea.modulo_nombre === moduloActivo;
       });
+
+      // Ordenar por categoría para agrupación visual
+      tareasDelModulo.sort((a, b) => {
+        const catA = a.categoria_nombre || 'Sin Categoría';
+        const catB = b.categoria_nombre || 'Sin Categoría';
+        if (catA === catB) return 0;
+        if (catA === 'Sin Categoría') return 1;
+        if (catB === 'Sin Categoría') return -1;
+        return catA.localeCompare(catB);
+      });
+
       setTareasFiltradas(tareasDelModulo);
     }
   }, [moduloActivo, tareas]);
@@ -1301,90 +1314,176 @@ const ModalCalificaciones: React.FC<ModalCalificacionesProps> = ({
                     }}
                   >
                     <thead>
-                      <tr
-                        style={{
-                          background: darkMode
-                            ? "rgba(255,255,255,0.05)"
-                            : "rgba(0,0,0,0.02)",
-                          borderBottom: `2px solid ${theme.border}`,
-                        }}
-                      >
-                        <th
-                          style={{
-                            padding: "0.75rem 1rem",
-                            textAlign: "left",
-                            color: theme.textPrimary,
-                            fontWeight: "600",
-                            background: darkMode
-                              ? "rgba(255, 255, 255, 0.05)"
-                              : "rgba(0, 0, 0, 0.02)",
-                            position: "sticky",
-                            left: 0,
-                            zIndex: 10,
-                          }}
-                        >
-                          Estudiante
-                        </th>
-                        {tareasFiltradas.map((tarea) => (
-                          <th
-                            key={tarea.id_tarea}
+                      {moduloActivo !== "todos" ? (
+                        <>
+                          <tr
                             style={{
-                              padding: "0.75rem 1rem",
-                              textAlign: "center",
-                              color: theme.textPrimary,
-                              fontWeight: "600",
-                              minWidth: "80px",
+                              background: darkMode
+                                ? "rgba(255,255,255,0.05)"
+                                : "rgba(0,0,0,0.02)",
+                              borderBottom: `2px solid ${theme.border}`,
                             }}
                           >
-                            <div style={{ marginBottom: "0.25rem" }}>
-                              {tarea.titulo}
-                            </div>
-                            <div
+                            <th
+                              rowSpan={2}
                               style={{
-                                fontSize: "0.75rem",
-                                color: theme.textMuted,
-                                fontWeight: "500",
+                                padding: "0.75rem 1rem",
+                                textAlign: "left",
+                                color: theme.textPrimary,
+                                fontWeight: "600",
+                                background: darkMode
+                                  ? "rgba(255, 255, 255, 0.05)"
+                                  : "rgba(0, 0, 0, 0.02)",
+                                position: "sticky",
+                                left: 0,
+                                zIndex: 10,
+                                borderBottom: `2px solid ${theme.border}`
                               }}
                             >
-                              /{tarea.nota_maxima}
-                            </div>
-                          </th>
-                        ))}
-                        {/* Columna de Promedio del Módulo Activo (si no es "todos") */}
-                        {moduloActivo !== "todos" && (
+                              Estudiante
+                            </th>
+                            {(() => {
+                              const groups = tareasFiltradas.reduce((acc: any, t) => {
+                                const key = t.categoria_nombre || 'Sin Categoría';
+                                const pond = t.categoria_ponderacion || 0;
+                                const id = `${key}|${pond}`;
+                                if (!acc[id]) acc[id] = { name: key, pond, count: 0 };
+                                acc[id].count++;
+                                return acc;
+                              }, {});
+                              return Object.values(groups).map((g: any, i) => (
+                                <th
+                                  key={i}
+                                  colSpan={g.count}
+                                  style={{
+                                    padding: "0.5rem",
+                                    textAlign: "center",
+                                    color: theme.info,
+                                    borderBottom: `1px solid ${theme.border}`,
+                                    background: darkMode
+                                      ? "rgba(255,255,255,0.02)"
+                                      : "rgba(0,0,0,0.01)",
+                                  }}
+                                >
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                                    <Award size={14} />
+                                    <span style={{ fontWeight: '700', fontSize: '0.85rem' }}>{g.name}</span>
+                                    <span style={{ fontSize: '0.75rem', fontWeight: '400', color: theme.textMuted }}>({g.pond} pts)</span>
+                                  </div>
+                                </th>
+                              ));
+                            })()}
+                            <th
+                              rowSpan={2}
+                              style={{
+                                padding: "0.75rem 1rem",
+                                textAlign: "center",
+                                color: theme.textPrimary,
+                                fontWeight: "600",
+                                background: darkMode
+                                  ? "rgba(245, 158, 11, 0.1)"
+                                  : "rgba(245, 158, 11, 0.05)",
+                                minWidth: "100px",
+                                borderBottom: `2px solid ${theme.border}`
+                              }}
+                            >
+                              <div style={{ marginBottom: "0.25rem" }}>
+                                Promedio {moduloActivo}
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: "0.7rem",
+                                  color: theme.textMuted,
+                                  fontWeight: "500",
+                                }}
+                              >
+                                /
+                                {typeof pesoPorModulo === "number"
+                                  ? pesoPorModulo.toFixed(2)
+                                  : "0.00"}{" "}
+                                pts
+                              </div>
+                            </th>
+                          </tr>
+                          <tr
+                            style={{
+                              background: darkMode
+                                ? "rgba(255,255,255,0.05)"
+                                : "rgba(0,0,0,0.02)",
+                              borderBottom: `2px solid ${theme.border}`,
+                            }}
+                          >
+                            {/* Calculate individual weight for tasks */}
+                            {(() => {
+                              // Re-calculate group counts for weight distribution
+                              const groupsCount = tareasFiltradas.reduce((acc: any, t) => {
+                                const key = t.categoria_nombre || 'Sin Categoría';
+                                if (!acc[key]) acc[key] = 0;
+                                acc[key]++;
+                                return acc;
+                              }, {});
+
+                              return tareasFiltradas.map((tarea) => {
+                                const catName = tarea.categoria_nombre || 'Sin Categoría';
+                                const count = groupsCount[catName] || 1;
+                                const catPond = tarea.categoria_ponderacion || 0;
+                                const individualWeight = count > 0 ? (catPond / count) : 0;
+
+                                return (
+                                  <th
+                                    key={tarea.id_tarea}
+                                    style={{
+                                      padding: "0.75rem 1rem",
+                                      textAlign: "center",
+                                      color: theme.textPrimary,
+                                      fontWeight: "600",
+                                      minWidth: "80px",
+                                    }}
+                                  >
+                                    <div style={{ marginBottom: "0.25rem" }}>
+                                      {tarea.titulo}
+                                    </div>
+                                    <div
+                                      style={{
+                                        fontSize: "0.75rem",
+                                        color: theme.textMuted,
+                                        fontWeight: "500",
+                                      }}
+                                    >
+                                      /{individualWeight.toFixed(2)} pts
+                                    </div>
+                                  </th>
+                                );
+                              });
+                            })()}
+                          </tr>
+                        </>
+                      ) : (
+                        <tr
+                          style={{
+                            background: darkMode
+                              ? "rgba(255,255,255,0.05)"
+                              : "rgba(0,0,0,0.02)",
+                            borderBottom: `2px solid ${theme.border}`,
+                          }}
+                        >
                           <th
                             style={{
                               padding: "0.75rem 1rem",
-                              textAlign: "center",
+                              textAlign: "left",
                               color: theme.textPrimary,
                               fontWeight: "600",
                               background: darkMode
-                                ? "rgba(245, 158, 11, 0.1)"
-                                : "rgba(245, 158, 11, 0.05)",
-                              minWidth: "100px",
+                                ? "rgba(255, 255, 255, 0.05)"
+                                : "rgba(0, 0, 0, 0.02)",
+                              position: "sticky",
+                              left: 0,
+                              zIndex: 10,
                             }}
                           >
-                            <div style={{ marginBottom: "0.25rem" }}>
-                              Promedio {moduloActivo}
-                            </div>
-                            <div
-                              style={{
-                                fontSize: "0.7rem",
-                                color: theme.textMuted,
-                                fontWeight: "500",
-                              }}
-                            >
-                              /
-                              {typeof pesoPorModulo === "number"
-                                ? pesoPorModulo.toFixed(2)
-                                : "0.00"}{" "}
-                              pts
-                            </div>
+                            Estudiante
                           </th>
-                        )}
-                        {/* Columnas de Promedio por Módulo (solo si está en vista "todos") */}
-                        {moduloActivo === "todos" &&
-                          modulos.map((modulo, idx) => (
+                          {modulos.map((modulo, idx) => (
                             <th
                               key={`modulo-${idx}`}
                               style={{
@@ -1416,8 +1515,6 @@ const ModalCalificaciones: React.FC<ModalCalificacionesProps> = ({
                               </div>
                             </th>
                           ))}
-                        {/* Columna Promedio Global (solo en vista "todos") */}
-                        {moduloActivo === "todos" && (
                           <th
                             style={{
                               padding: "0.75rem 1rem",
@@ -1443,8 +1540,8 @@ const ModalCalificaciones: React.FC<ModalCalificacionesProps> = ({
                               /10 pts
                             </div>
                           </th>
-                        )}
-                      </tr>
+                        </tr>
+                      )}
                     </thead>
                     <tbody>
                       {filteredEstudiantes.map((estudiante, idx) => (

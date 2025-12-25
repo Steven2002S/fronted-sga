@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, BookOpen, Calendar, FileText, Upload, Send,
-  CheckCircle, ChevronDown, ChevronUp, Edit, Trash2, AlertTriangle, X, FileType, Maximize2, Minimize2
+  CheckCircle, ChevronDown, ChevronUp, Edit, Trash2, AlertTriangle, X, FileType, Maximize2, Minimize2, Award, Clock
 } from 'lucide-react';
 import axios from 'axios';
 import { showToast } from '../../config/toastConfig';
@@ -43,6 +43,9 @@ interface Tarea {
     estado: string;
     fecha_entrega: string;
   };
+  id_categoria?: number;
+  categoria_nombre?: string;
+  categoria_ponderacion?: number;
 }
 
 interface DetalleCursoEstudianteProps {
@@ -511,381 +514,514 @@ const DetalleCursoEstudiante: React.FC<DetalleCursoEstudianteProps> = ({ darkMod
                 <div style={{ flex: 1 }}>
                   <h3 style={{
                     color: theme.textPrimary,
-                    fontSize: '1rem',
+                    fontSize: '0.9rem', // Reduced from 1rem
                     fontWeight: '600',
-                    margin: '0 0 0.25em 0',
+                    margin: '0 0 0.15em 0', // Reduced margin
                     letterSpacing: '-0.01em'
                   }}>
                     {modulo.nombre}
                   </h3>
-                  <p style={{ color: theme.textMuted, fontSize: '0.8125rem', margin: 0 }}>
+                  <p style={{ color: theme.textMuted, fontSize: '0.75rem', margin: 0 }}>
                     {modulo.total_tareas} {modulo.total_tareas === 1 ? 'tarea' : 'tareas'}
                   </p>
                 </div>
                 {modulosExpandidos[modulo.id_modulo] ? (
-                  <ChevronUp size={18} style={{ color: theme.textMuted }} />
+                  <ChevronUp size={16} style={{ color: theme.textMuted }} />
                 ) : (
-                  <ChevronDown size={18} style={{ color: theme.textMuted }} />
+                  <ChevronDown size={16} style={{ color: theme.textMuted }} />
                 )}
               </div>
 
               {/* Lista de Tareas */}
               {modulosExpandidos[modulo.id_modulo] && (
-                <div style={{ padding: '0 1.5em 1.25em' }}>
+                <div style={{ padding: '0 1em 1em' }}>
                   {!tareasPorModulo[modulo.id_modulo] || tareasPorModulo[modulo.id_modulo].length === 0 ? (
                     <p style={{ color: theme.textMuted, textAlign: 'center', padding: '1.25em' }}>
                       No hay tareas en este módulo
                     </p>
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625em' }}>
-                      {tareasPorModulo[modulo.id_modulo].map((tarea) => (
-                        <div
-                          key={tarea.id_tarea}
-                          style={{
-                            background: darkMode ? 'rgba(255,255,255,0.015)' : '#f9fafb',
-                            border: `0.0625rem solid ${darkMode ? 'rgba(255,255,255,0.04)' : '#e5e7eb'}`,
-                            borderRadius: '0.625em',
-                            padding: '1em 1.125em'
-                          }}
-                        >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.625em' }}>
-                            <div style={{ flex: 1 }}>
-                              <h4 style={{
-                                color: theme.textPrimary,
-                                fontSize: '0.9375rem',
-                                fontWeight: '600',
-                                margin: '0 0 0.375em 0',
-                                letterSpacing: '-0.01em'
-                              }}>
-                                {tarea.titulo}
-                              </h4>
-                              {tarea.descripcion && (
-                                <p style={{ color: theme.textMuted, fontSize: '0.8125rem', margin: '0 0 0.5em 0', lineHeight: '1.4' }}>
-                                  {tarea.descripcion}
-                                </p>
-                              )}
-                              <div style={{ display: 'flex', gap: '0.75em', fontSize: '0.8125rem', color: theme.textMuted, flexWrap: 'wrap' }}>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.25em' }}>
-                                  <Calendar size={13} color={theme.textMuted} />
-                                  Límite: {new Date(tarea.fecha_limite).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })} {new Date(tarea.fecha_limite).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit', hour12: false })}
-                                </span>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.25em' }}>
-                                  <FileText size={13} color={theme.textMuted} />
-                                  Nota: {Number(tarea.nota_maxima).toFixed(2)} | Peso: {tarea.ponderacion}pts
-                                </span>
-                              </div>
-                            </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25em' }}>
+                      {/* Agrupar tareas por categoría */}
+                      {(() => {
+                        const tareas = tareasPorModulo[modulo.id_modulo] || [];
+                        const tareasPorCategoria = tareas.reduce((acc, tarea) => {
+                          const categoriaKey = tarea.categoria_nombre
+                            ? `${tarea.categoria_nombre}|${tarea.categoria_ponderacion}`
+                            : 'Sin Categoría|0';
+                          if (!acc[categoriaKey]) {
+                            acc[categoriaKey] = [];
+                          }
+                          acc[categoriaKey].push(tarea);
+                          return acc;
+                        }, {} as Record<string, typeof tareas>);
 
-                            {/* Estado de la entrega */}
-                            {tarea.entrega ? (
-                              <div style={{
-                                background: tarea.entrega.calificacion ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.08)',
-                                border: `0.0625rem solid ${tarea.entrega.calificacion ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.2)'}`,
-                                borderRadius: '0.375em',
-                                padding: '0.25em 0.625em',
-                                fontSize: '0.6875rem',
-                                fontWeight: '600',
-                                color: tarea.entrega.calificacion ? '#10b981' : '#f59e0b',
-                                whiteSpace: 'nowrap' as const
-                              }}>
-                                {tarea.entrega.calificacion ? 'Calificado' : 'Entregado'}
-                              </div>
-                            ) : (
-                              <div style={{
-                                background: 'rgba(239, 68, 68, 0.08)',
-                                border: '0.0625rem solid rgba(239, 68, 68, 0.2)',
-                                borderRadius: '0.375em',
-                                padding: '0.25em 0.625em',
-                                fontSize: '0.6875rem',
-                                fontWeight: '600',
-                                color: '#ef4444',
-                                whiteSpace: 'nowrap' as const
-                              }}>
-                                Pendiente
-                              </div>
-                            )}
-                          </div>
+                        // Ordenar categorías (opcional, por ahora alfabético o como vengan)
+                        return Object.entries(tareasPorCategoria).map(([key, tareasDeCategoria]) => {
+                          const [nombreCat, ponderacionCat] = key.split('|');
 
-                          {/* Subir archivo */}
-                          {tarea.permite_archivo && !tarea.entrega && (
-                            <div style={{ marginTop: '0.625em', paddingTop: '0.625em', borderTop: `0.0625rem solid ${darkMode ? 'rgba(255,255,255,0.04)' : '#e5e7eb'}` }}>
-                              {/* Mensaje si el módulo está cerrado */}
-                              {modulo.estado === 'finalizado' ? (
+                          return (
+                            <div key={key}>
+                              {nombreCat !== 'Sin Categoría' && (
                                 <div style={{
-                                  background: 'rgba(156, 163, 175, 0.1)',
-                                  border: '1px solid rgba(156, 163, 175, 0.3)',
-                                  borderRadius: '0.5em',
-                                  padding: '0.75em',
                                   display: 'flex',
                                   alignItems: 'center',
-                                  gap: '0.5em'
+                                  gap: '0.75rem',
+                                  marginBottom: '1rem',
+                                  marginTop: '1.5rem',
+                                  padding: '0.75rem 1rem',
+                                  background: darkMode ? 'rgba(251, 191, 36, 0.1)' : 'rgba(251, 191, 36, 0.05)',
+                                  borderLeft: `4px solid ${theme.accent}`,
+                                  borderRadius: '0 0.5rem 0.5rem 0',
+                                  boxShadow: darkMode ? 'none' : '0 2px 4px rgba(0,0,0,0.05)',
                                 }}>
-                                  <AlertTriangle size={16} color="#9ca3af" />
-                                  <span style={{ color: '#9ca3af', fontSize: '0.75rem', fontWeight: '600' }}>
-                                    Módulo cerrado exitosamente - No se permiten más entregas
-                                  </span>
+                                  <Award size={20} color={theme.accent} />
+                                  <h5 style={{
+                                    margin: 0,
+                                    fontSize: '1rem',
+                                    fontWeight: '800',
+                                    color: theme.textPrimary,
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.05em',
+                                    flex: 1
+                                  }}>
+                                    {nombreCat}
+                                  </h5>
+                                  <div style={{
+                                    background: theme.accent,
+                                    color: '#000',
+                                    padding: '0.25rem 0.75rem',
+                                    borderRadius: '1rem',
+                                    fontSize: '0.75rem',
+                                    fontWeight: '700',
+                                    boxShadow: '0 2px 4px rgba(251, 191, 36, 0.3)'
+                                  }}>
+                                    {ponderacionCat} pts
+                                  </div>
                                 </div>
-                              ) : (
-                                <>
-                                  {/* Advertencia si pasó la fecha límite */}
-                                  {!puedeEntregar(tarea.fecha_limite) && (
-                                    <div style={{
-                                      background: 'rgba(239, 68, 68, 0.1)',
-                                      border: '1px solid rgba(239, 68, 68, 0.3)',
-                                      borderRadius: '0.5em',
-                                      padding: '0.5em 0.75em',
-                                      marginBottom: '0.5em',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '0.5em'
-                                    }}>
-                                      <AlertTriangle size={16} color="#ef4444" />
-                                      <span style={{ color: '#ef4444', fontSize: '0.75rem', fontWeight: '600' }}>
-                                        Fecha límite vencida - La entrega será marcada como atrasada
-                                      </span>
-                                    </div>
-                                  )}
+                              )}
 
-                                  <input
-                                    type="file"
-                                    accept={tarea.formatos_permitidos.split(',').map(f => `.${f}`).join(',')}
-                                    onChange={(e) => {
-                                      const file = e.target.files?.[0];
-                                      if (file) {
-                                        if (file.size > tarea.tamano_maximo_mb * 1024 * 1024) {
-                                          showToast.error(`El archivo no debe superar ${tarea.tamano_maximo_mb}MB`, darkMode);
-                                          return;
-                                        }
-                                        handleFileSelect(file, tarea.id_tarea, 'entregar');
-                                      }
-                                      e.target.value = ''; // Limpiar input
-                                    }}
-                                    style={{ display: 'none' }}
-                                    id={`file-${tarea.id_tarea}`}
-                                  />
-                                  <label
-                                    htmlFor={`file-${tarea.id_tarea}`}
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625em' }}>
+                                {tareasDeCategoria.map((tarea) => (
+                                  <div
+                                    key={tarea.id_tarea}
                                     style={{
-                                      background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
-                                      border: 'none',
-                                      borderRadius: '0.4375em',
-                                      padding: '0.5em 0.875em',
-                                      color: darkMode ? '#000' : '#fff',
-                                      cursor: uploadingTarea === tarea.id_tarea ? 'not-allowed' : 'pointer',
-                                      display: 'inline-flex',
-                                      alignItems: 'center',
-                                      gap: '0.375em',
-                                      fontWeight: '600',
-                                      fontSize: '0.8125rem',
-                                      opacity: uploadingTarea === tarea.id_tarea ? 0.6 : 1,
-                                      boxShadow: '0 0.125rem 0.375rem rgba(251, 191, 36, 0.25)',
-                                      transition: 'all 0.2s ease'
+                                      background: darkMode
+                                        ? 'linear-gradient(145deg, rgba(40, 40, 45, 0.6), rgba(30, 30, 35, 0.8))'
+                                        : 'linear-gradient(145deg, #ffffff, #f8fafc)',
+                                      border: `0.0625rem solid ${darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(226, 232, 240, 0.8)'}`,
+                                      borderRadius: '0.625rem',
+                                      padding: '0.75em 1em',
+                                      boxShadow: darkMode
+                                        ? '0 1px 3px -1px rgba(0, 0, 0, 0.2), 0 1px 2px -1px rgba(0, 0, 0, 0.1)'
+                                        : '0 1px 3px -1px rgba(226, 232, 240, 0.5), 0 1px 2px -1px rgba(226, 232, 240, 0.3)',
+                                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                      position: 'relative',
+                                      overflow: 'hidden'
                                     }}
                                     onMouseEnter={(e) => {
-                                      if (uploadingTarea !== tarea.id_tarea) {
-                                        e.currentTarget.style.transform = 'translateY(-0.0625rem)';
-                                        e.currentTarget.style.boxShadow = '0 0.25rem 0.625rem rgba(251, 191, 36, 0.3)';
-                                      }
+                                      e.currentTarget.style.transform = 'translateY(-1px)';
+                                      e.currentTarget.style.boxShadow = darkMode
+                                        ? '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)'
+                                        : '0 4px 6px -1px rgba(226, 232, 240, 0.8), 0 2px 4px -1px rgba(226, 232, 240, 0.4)';
+                                      e.currentTarget.style.borderColor = theme.accent;
                                     }}
                                     onMouseLeave={(e) => {
                                       e.currentTarget.style.transform = 'translateY(0)';
-                                      e.currentTarget.style.boxShadow = '0 0.125rem 0.375rem rgba(251, 191, 36, 0.25)';
+                                      e.currentTarget.style.boxShadow = darkMode
+                                        ? '0 1px 3px -1px rgba(0, 0, 0, 0.2), 0 1px 2px -1px rgba(0, 0, 0, 0.1)'
+                                        : '0 1px 3px -1px rgba(226, 232, 240, 0.5), 0 1px 2px -1px rgba(226, 232, 240, 0.3)';
+                                      e.currentTarget.style.borderColor = darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(226, 232, 240, 0.8)';
                                     }}
                                   >
-                                    <Send size={15} color={darkMode ? '#000' : '#fff'} />
-                                    {uploadingTarea === tarea.id_tarea ? 'Subiendo...' : 'Entregar Tarea'}
-                                  </label>
-                                  <p style={{ color: theme.textMuted, fontSize: '0.6875rem', margin: '0.375em 0 0 0' }}>
-                                    Formatos: {tarea.formatos_permitidos.toUpperCase()} • Máx: {tarea.tamano_maximo_mb}MB
-                                  </p>
-                                </>
-                              )}
-                            </div>
-                          )}
+                                    <div style={{
+                                      display: 'flex',
+                                      justifyContent: 'space-between',
+                                      alignItems: 'flex-start',
+                                      marginBottom: '0.5em',
+                                      gap: '0.625rem'
+                                    }}>
+                                      <div style={{ flex: 1 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.25rem' }}>
+                                          <span style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.2em',
+                                            fontSize: '0.6rem',
+                                            color: theme.textMuted,
+                                            background: darkMode ? 'rgba(255,255,255,0.03)' : '#f1f5f9',
+                                            padding: '0.1em 0.35em',
+                                            borderRadius: '0.25em'
+                                          }}>
+                                            <FileText size={9} />
+                                            Nota Máx: {Number(tarea.nota_maxima).toFixed(2)}
+                                          </span>
+                                        </div>
 
-                          {/* Archivo entregado */}
-                          {tarea.entrega && (
-                            <div style={{
-                              background: darkMode ? 'rgba(217, 119, 6, 0.1)' : 'rgba(217, 119, 6, 0.05)',
-                              border: '0.0625rem solid rgba(217, 119, 6, 0.2)',
-                              borderRadius: '0.5em',
-                              padding: '0.75em',
-                              marginTop: '0.75em'
-                            }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: tarea.entrega.calificacion ? '0.5em' : '0' }}>
-                                <div style={{ flex: 1 }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5em', marginBottom: '0.25em' }}>
-                                    <p style={{ color: theme.textPrimary, fontSize: '0.875rem', fontWeight: '600', margin: 0 }}>
-                                      {tarea.entrega.archivo_nombre}
-                                    </p>
-                                    {/* Badge ATRASADA */}
-                                    {esEntregaAtrasada(tarea.entrega.fecha_entrega, tarea.fecha_limite) && (
-                                      <span style={{
-                                        background: 'rgba(239, 68, 68, 0.1)',
-                                        border: '1px solid rgba(239, 68, 68, 0.3)',
-                                        borderRadius: '0.25em',
-                                        padding: '0.125em 0.5em',
-                                        fontSize: '0.65rem',
-                                        fontWeight: '700',
-                                        color: '#ef4444',
-                                        textTransform: 'uppercase'
+                                        <h4 style={{
+                                          color: theme.textPrimary,
+                                          fontSize: '0.85rem',
+                                          fontWeight: '700',
+                                          margin: '0 0 0.15em 0',
+                                          letterSpacing: '-0.01em',
+                                          lineHeight: '1.2'
+                                        }}>
+                                          {tarea.titulo}
+                                        </h4>
+
+                                        {tarea.descripcion && (
+                                          <p style={{
+                                            color: theme.textMuted,
+                                            fontSize: '0.7rem',
+                                            margin: '0 0 0.5em 0',
+                                            lineHeight: '1.4',
+                                            maxWidth: '95%'
+                                          }}>
+                                            {tarea.descripcion}
+                                          </p>
+                                        )}
+
+                                        <div style={{ display: 'flex', gap: '0.5em', fontSize: '0.65rem', color: theme.textMuted, flexWrap: 'wrap', alignItems: 'center' }}>
+                                          <span style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.25em',
+                                            color: esEntregaAtrasada(new Date().toISOString(), tarea.fecha_limite) ? '#ef4444' : theme.textMuted
+                                          }}>
+                                            <Calendar size={11} />
+                                            <span style={{ fontWeight: '500' }}>Vence:</span>
+                                            {new Date(tarea.fecha_limite).toLocaleDateString('es-ES', { weekday: 'short', day: '2-digit', month: 'short' })} •
+                                            {new Date(tarea.fecha_limite).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                                          </span>
+                                        </div>
+                                      </div>
+
+                                      {/* Estado de la entrega Badge */}
+                                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.2rem' }}>
+                                        {tarea.entrega ? (
+                                          <div style={{
+                                            background: tarea.entrega.calificacion
+                                              ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 95, 70, 0.15))'
+                                              : 'linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(180, 83, 9, 0.15))',
+                                            border: `1px solid ${tarea.entrega.calificacion ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`,
+                                            borderRadius: '0.4em',
+                                            padding: '0.2em 0.5em',
+                                            fontSize: '0.6rem',
+                                            fontWeight: '700',
+                                            color: tarea.entrega.calificacion ? '#10b981' : '#f59e0b',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.25em',
+                                            boxShadow: `0 1px 2px ${tarea.entrega.calificacion ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)'}`
+                                          }}>
+                                            {tarea.entrega.calificacion ? <CheckCircle size={10} strokeWidth={3} /> : <Clock size={10} strokeWidth={3} />}
+                                            {tarea.entrega.calificacion ? 'CALIFICADO' : 'ENTREGADO'}
+                                          </div>
+                                        ) : (
+                                          <div style={{
+                                            background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(153, 27, 27, 0.1))',
+                                            border: '1px solid rgba(239, 68, 68, 0.2)',
+                                            borderRadius: '0.4em',
+                                            padding: '0.2em 0.5em',
+                                            fontSize: '0.6rem',
+                                            fontWeight: '700',
+                                            color: '#ef4444',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.25em'
+                                          }}>
+                                            <AlertTriangle size={10} strokeWidth={2.5} />
+                                            PENDIENTE
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                    {/* Subir archivo */}
+                                    {tarea.permite_archivo && !tarea.entrega && (
+                                      <div style={{ marginTop: '0.625em', paddingTop: '0.625em', borderTop: `0.0625rem solid ${darkMode ? 'rgba(255,255,255,0.04)' : '#e5e7eb'}` }}>
+                                        {/* Mensaje si el módulo está cerrado */}
+                                        {modulo.estado === 'finalizado' ? (
+                                          <div style={{
+                                            background: 'rgba(156, 163, 175, 0.1)',
+                                            border: '1px solid rgba(156, 163, 175, 0.3)',
+                                            borderRadius: '0.5em',
+                                            padding: '0.75em',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.5em'
+                                          }}>
+                                            <AlertTriangle size={16} color="#9ca3af" />
+                                            <span style={{ color: '#9ca3af', fontSize: '0.75rem', fontWeight: '600' }}>
+                                              Módulo cerrado exitosamente - No se permiten más entregas
+                                            </span>
+                                          </div>
+                                        ) : (
+                                          <>
+                                            {/* Advertencia si pasó la fecha límite */}
+                                            {!puedeEntregar(tarea.fecha_limite) && (
+                                              <div style={{
+                                                background: 'rgba(239, 68, 68, 0.1)',
+                                                border: '1px solid rgba(239, 68, 68, 0.3)',
+                                                borderRadius: '0.5em',
+                                                padding: '0.5em 0.75em',
+                                                marginBottom: '0.5em',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.5em'
+                                              }}>
+                                                <AlertTriangle size={16} color="#ef4444" />
+                                                <span style={{ color: '#ef4444', fontSize: '0.75rem', fontWeight: '600' }}>
+                                                  Fecha límite vencida - La entrega será marcada como atrasada
+                                                </span>
+                                              </div>
+                                            )}
+
+                                            <input
+                                              type="file"
+                                              accept={tarea.formatos_permitidos.split(',').map(f => `.${f}`).join(',')}
+                                              onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) {
+                                                  if (file.size > tarea.tamano_maximo_mb * 1024 * 1024) {
+                                                    showToast.error(`El archivo no debe superar ${tarea.tamano_maximo_mb}MB`, darkMode);
+                                                    return;
+                                                  }
+                                                  handleFileSelect(file, tarea.id_tarea, 'entregar', undefined, modulo.id_modulo);
+                                                }
+                                                e.target.value = ''; // Limpiar input
+                                              }}
+                                              style={{ display: 'none' }}
+                                              id={`file-${tarea.id_tarea}`}
+                                            />
+                                            <label
+                                              htmlFor={`file-${tarea.id_tarea}`}
+                                              style={{
+                                                background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+                                                border: 'none',
+                                                borderRadius: '0.4375em',
+                                                padding: '0.5em 0.875em',
+                                                color: darkMode ? '#000' : '#fff',
+                                                cursor: uploadingTarea === tarea.id_tarea ? 'not-allowed' : 'pointer',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '0.375em',
+                                                fontWeight: '600',
+                                                fontSize: '0.8125rem',
+                                                opacity: uploadingTarea === tarea.id_tarea ? 0.6 : 1,
+                                                boxShadow: '0 0.125rem 0.375rem rgba(251, 191, 36, 0.25)',
+                                                transition: 'all 0.2s ease'
+                                              }}
+                                              onMouseEnter={(e) => {
+                                                if (uploadingTarea !== tarea.id_tarea) {
+                                                  e.currentTarget.style.transform = 'translateY(-0.0625rem)';
+                                                  e.currentTarget.style.boxShadow = '0 0.25rem 0.625rem rgba(251, 191, 36, 0.3)';
+                                                }
+                                              }}
+                                              onMouseLeave={(e) => {
+                                                e.currentTarget.style.transform = 'translateY(0)';
+                                                e.currentTarget.style.boxShadow = '0 0.125rem 0.375rem rgba(251, 191, 36, 0.25)';
+                                              }}
+                                            >
+                                              <Send size={15} color={darkMode ? '#000' : '#fff'} />
+                                              {uploadingTarea === tarea.id_tarea ? 'Subiendo...' : 'Entregar Tarea'}
+                                            </label>
+                                            <p style={{ color: theme.textMuted, fontSize: '0.6875rem', margin: '0.375em 0 0 0' }}>
+                                              Formatos: {tarea.formatos_permitidos.toUpperCase()} • Máx: {tarea.tamano_maximo_mb}MB
+                                            </p>
+                                          </>
+                                        )}
+                                      </div>
+                                    )}
+                                    {/* Archivo entregado */}
+                                    {tarea.entrega && (
+                                      <div style={{
+                                        background: darkMode ? 'rgba(217, 119, 6, 0.1)' : 'rgba(217, 119, 6, 0.05)',
+                                        border: '0.0625rem solid rgba(217, 119, 6, 0.2)',
+                                        borderRadius: '0.5em',
+                                        padding: '0.75em',
+                                        marginTop: '0.75em'
                                       }}>
-                                        ATRASADA
-                                      </span>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: tarea.entrega.calificacion ? '0.5em' : '0' }}>
+                                          <div style={{ flex: 1 }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5em', marginBottom: '0.25em' }}>
+                                              <p style={{ color: theme.textPrimary, fontSize: '0.875rem', fontWeight: '600', margin: 0 }}>
+                                                {tarea.entrega.archivo_nombre}
+                                              </p>
+                                              {/* Badge ATRASADA */}
+                                              {esEntregaAtrasada(tarea.entrega.fecha_entrega, tarea.fecha_limite) && (
+                                                <span style={{
+                                                  background: 'rgba(239, 68, 68, 0.1)',
+                                                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                                                  borderRadius: '0.25em',
+                                                  padding: '0.125em 0.5em',
+                                                  fontSize: '0.65rem',
+                                                  fontWeight: '700',
+                                                  color: '#ef4444',
+                                                  textTransform: 'uppercase'
+                                                }}>
+                                                  ATRASADA
+                                                </span>
+                                              )}
+                                            </div>
+                                            <p style={{ color: theme.textMuted, fontSize: '0.75rem', margin: 0 }}>
+                                              Entregado: {new Date(tarea.entrega.fecha_entrega).toLocaleDateString('es-ES')} {new Date(tarea.entrega.fecha_entrega).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                                            </p>
+                                          </div>
+                                          <CheckCircle size={20} color={tarea.entrega.calificacion ? '#10b981' : '#d97706'} />
+                                        </div>
+
+                                        {/* Botones Editar y Eliminar (solo si NO está calificada Y módulo NO está cerrado) */}
+                                        {!tarea.entrega.calificacion && modulo.estado !== 'finalizado' && (
+                                          <div style={{ display: 'flex', gap: '0.5em', marginTop: '0.5em', paddingTop: '0.5em', borderTop: `1px solid ${darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}` }}>
+                                            {/* Botón Editar */}
+                                            <div>
+                                              <input
+                                                type="file"
+                                                accept={tarea.formatos_permitidos.split(',').map(f => `.${f}`).join(',')}
+                                                onChange={(e) => {
+                                                  const file = e.target.files?.[0];
+                                                  if (file) {
+                                                    if (file.size > tarea.tamano_maximo_mb * 1024 * 1024) {
+                                                      showToast.error(`El archivo no debe superar ${tarea.tamano_maximo_mb}MB`, darkMode);
+                                                      return;
+                                                    }
+                                                    handleFileSelect(file, tarea.id_tarea, 'editar', tarea.entrega!.id_entrega, modulo.id_modulo);
+                                                  }
+                                                  e.target.value = ''; // Limpiar input
+                                                }}
+                                                style={{ display: 'none' }}
+                                                id={`edit-file-${tarea.id_tarea}`}
+                                              />
+                                              <label
+                                                htmlFor={`edit-file-${tarea.id_tarea}`}
+                                                style={{
+                                                  background: darkMode ? 'rgba(245, 158, 11, 0.1)' : 'rgba(245, 158, 11, 0.08)',
+                                                  border: '1px solid rgba(245, 158, 11, 0.3)',
+                                                  borderRadius: '0.375em',
+                                                  padding: '0.375em 0.75em',
+                                                  color: '#f59e0b',
+                                                  cursor: 'pointer',
+                                                  display: 'inline-flex',
+                                                  alignItems: 'center',
+                                                  gap: '0.375em',
+                                                  fontWeight: '600',
+                                                  fontSize: '0.75rem',
+                                                  transition: 'all 0.2s ease'
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                  e.currentTarget.style.background = 'rgba(245, 158, 11, 0.15)';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                  e.currentTarget.style.background = darkMode ? 'rgba(245, 158, 11, 0.1)' : 'rgba(245, 158, 11, 0.08)';
+                                                }}
+                                              >
+                                                <Edit size={14} color="#f59e0b" />
+                                                Editar
+                                              </label>
+                                            </div>
+
+                                            {/* Botón Eliminar */}
+                                            <button
+                                              onClick={() => openDeleteConfirm(tarea.entrega!.id_entrega, modulo.id_modulo)}
+                                              style={{
+                                                background: darkMode ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.08)',
+                                                border: '1px solid rgba(239, 68, 68, 0.3)',
+                                                borderRadius: '0.375em',
+                                                padding: '0.375em 0.75em',
+                                                color: '#ef4444',
+                                                cursor: 'pointer',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '0.375em',
+                                                fontWeight: '600',
+                                                fontSize: '0.75rem',
+                                                transition: 'all 0.2s ease'
+                                              }}
+                                              onMouseEnter={(e) => {
+                                                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)';
+                                              }}
+                                              onMouseLeave={(e) => {
+                                                e.currentTarget.style.background = darkMode ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.08)';
+                                              }}
+                                            >
+                                              <Trash2 size={14} color="#ef4444" />
+                                              Eliminar
+                                            </button>
+                                          </div>
+                                        )}
+
+                                        {/* Mostrar calificación si existe */}
+                                        {tarea.entrega.calificacion !== undefined && tarea.entrega.calificacion !== null && (
+                                          <div style={{
+                                            borderTop: '0.0625rem solid rgba(217, 119, 6, 0.2)',
+                                            paddingTop: '0.5em',
+                                            marginTop: '0.5em'
+                                          }}>
+                                            <p style={{ color: '#d97706', fontSize: '0.875rem', fontWeight: '700', margin: '0 0 0.25em 0' }}>
+                                              Calificación: {tarea.entrega.calificacion}/{tarea.nota_maxima}
+                                            </p>
+                                            {tarea.entrega.comentarios && (
+                                              <p style={{ color: theme.textSecondary, fontSize: '0.8125rem', margin: '0 0 0.25em 0', fontStyle: 'italic' }}>
+                                                "{tarea.entrega.comentarios}"
+                                              </p>
+                                            )}
+                                            <p style={{ color: theme.textMuted, fontSize: '0.75rem', margin: 0 }}>
+                                              {tarea.entrega.calificador_nombres && tarea.entrega.calificador_apellidos ? (
+                                                <>
+                                                  Calificado por <strong>{tarea.entrega.calificador_nombres} {tarea.entrega.calificador_apellidos}</strong>
+                                                  {tarea.entrega.fecha_calificacion && ` el ${new Date(tarea.entrega.fecha_calificacion).toLocaleDateString('es-ES')}`}
+                                                </>
+                                              ) : tarea.entrega.fecha_calificacion ? (
+                                                `Calificado el ${new Date(tarea.entrega.fecha_calificacion).toLocaleDateString('es-ES')}`
+                                              ) : null}
+                                            </p>
+                                          </div>
+                                        )}
+                                      </div>
                                     )}
                                   </div>
-                                  <p style={{ color: theme.textMuted, fontSize: '0.75rem', margin: 0 }}>
-                                    Entregado: {new Date(tarea.entrega.fecha_entrega).toLocaleDateString('es-ES')} {new Date(tarea.entrega.fecha_entrega).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit', hour12: false })}
-                                  </p>
-                                </div>
-                                <CheckCircle size={20} color={tarea.entrega.calificacion ? '#10b981' : '#d97706'} />
+                                ))}
                               </div>
-
-                              {/* Botones Editar y Eliminar (solo si NO está calificada Y módulo NO está cerrado) */}
-                              {!tarea.entrega.calificacion && modulo.estado !== 'finalizado' && (
-                                <div style={{ display: 'flex', gap: '0.5em', marginTop: '0.5em', paddingTop: '0.5em', borderTop: `1px solid ${darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}` }}>
-                                  {/* Botón Editar */}
-                                  <div>
-                                    <input
-                                      type="file"
-                                      accept={tarea.formatos_permitidos.split(',').map(f => `.${f}`).join(',')}
-                                      onChange={(e) => {
-                                        const file = e.target.files?.[0];
-                                        if (file) {
-                                          if (file.size > tarea.tamano_maximo_mb * 1024 * 1024) {
-                                            showToast.error(`El archivo no debe superar ${tarea.tamano_maximo_mb}MB`, darkMode);
-                                            return;
-                                          }
-                                          handleFileSelect(file, tarea.id_tarea, 'editar', tarea.entrega!.id_entrega, modulo.id_modulo);
-                                        }
-                                        e.target.value = ''; // Limpiar input
-                                      }}
-                                      style={{ display: 'none' }}
-                                      id={`edit-file-${tarea.id_tarea}`}
-                                    />
-                                    <label
-                                      htmlFor={`edit-file-${tarea.id_tarea}`}
-                                      style={{
-                                        background: darkMode ? 'rgba(245, 158, 11, 0.1)' : 'rgba(245, 158, 11, 0.08)',
-                                        border: '1px solid rgba(245, 158, 11, 0.3)',
-                                        borderRadius: '0.375em',
-                                        padding: '0.375em 0.75em',
-                                        color: '#f59e0b',
-                                        cursor: 'pointer',
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        gap: '0.375em',
-                                        fontWeight: '600',
-                                        fontSize: '0.75rem',
-                                        transition: 'all 0.2s ease'
-                                      }}
-                                      onMouseEnter={(e) => {
-                                        e.currentTarget.style.background = 'rgba(245, 158, 11, 0.15)';
-                                      }}
-                                      onMouseLeave={(e) => {
-                                        e.currentTarget.style.background = darkMode ? 'rgba(245, 158, 11, 0.1)' : 'rgba(245, 158, 11, 0.08)';
-                                      }}
-                                    >
-                                      <Edit size={14} color="#f59e0b" />
-                                      Editar
-                                    </label>
-                                  </div>
-
-                                  {/* Botón Eliminar */}
-                                  <button
-                                    onClick={() => openDeleteConfirm(tarea.entrega!.id_entrega, modulo.id_modulo)}
-                                    style={{
-                                      background: darkMode ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.08)',
-                                      border: '1px solid rgba(239, 68, 68, 0.3)',
-                                      borderRadius: '0.375em',
-                                      padding: '0.375em 0.75em',
-                                      color: '#ef4444',
-                                      cursor: 'pointer',
-                                      display: 'inline-flex',
-                                      alignItems: 'center',
-                                      gap: '0.375em',
-                                      fontWeight: '600',
-                                      fontSize: '0.75rem',
-                                      transition: 'all 0.2s ease'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                      e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      e.currentTarget.style.background = darkMode ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.08)';
-                                    }}
-                                  >
-                                    <Trash2 size={14} color="#ef4444" />
-                                    Eliminar
-                                  </button>
-                                </div>
-                              )}
-
-                              {/* Mostrar calificación si existe */}
-                              {tarea.entrega.calificacion !== undefined && tarea.entrega.calificacion !== null && (
-                                <div style={{
-                                  borderTop: '0.0625rem solid rgba(217, 119, 6, 0.2)',
-                                  paddingTop: '0.5em',
-                                  marginTop: '0.5em'
-                                }}>
-                                  <p style={{ color: '#d97706', fontSize: '0.875rem', fontWeight: '700', margin: '0 0 0.25em 0' }}>
-                                    Calificación: {tarea.entrega.calificacion}/{tarea.nota_maxima}
-                                  </p>
-                                  {tarea.entrega.comentarios && (
-                                    <p style={{ color: theme.textSecondary, fontSize: '0.8125rem', margin: '0 0 0.25em 0', fontStyle: 'italic' }}>
-                                      "{tarea.entrega.comentarios}"
-                                    </p>
-                                  )}
-                                  <p style={{ color: theme.textMuted, fontSize: '0.75rem', margin: 0 }}>
-                                    {tarea.entrega.calificador_nombres && tarea.entrega.calificador_apellidos ? (
-                                      <>
-                                        Calificado por <strong>{tarea.entrega.calificador_nombres} {tarea.entrega.calificador_apellidos}</strong>
-                                        {tarea.entrega.fecha_calificacion && ` el ${new Date(tarea.entrega.fecha_calificacion).toLocaleDateString('es-ES')}`}
-                                      </>
-                                    ) : tarea.entrega.fecha_calificacion ? (
-                                      `Calificado el ${new Date(tarea.entrega.fecha_calificacion).toLocaleDateString('es-ES')}`
-                                    ) : null}
-                                  </p>
-                                </div>
-                              )}
                             </div>
-                          )}
-                        </div>
-                      ))}
+                          );
+                        });
+                      })()}
                     </div>
-                  )}
+                  )
+                  }
                 </div>
               )}
             </div>
           ))}
         </div>
-      )}
+      )
+      }
 
       {/* Modal de Previsualización */}
-      {archivoPreview && createPortal(
-        <>
-          {/* Overlay */}
-          <div
-            onClick={() => setArchivoPreview(null)}
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              width: '100vw',
-              height: '100vh',
-              background: 'rgba(0, 0, 0, 0.65)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
-              zIndex: 99998,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              animation: 'fadeIn 0.3s ease-out'
-            }}
-          >
-            <style>{`
+      {
+        archivoPreview && createPortal(
+          <>
+            {/* Overlay */}
+            <div
+              onClick={() => setArchivoPreview(null)}
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                width: '100vw',
+                height: '100vh',
+                background: 'rgba(0, 0, 0, 0.65)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
+                zIndex: 99998,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                animation: 'fadeIn 0.3s ease-out'
+              }}
+            >
+              <style>{`
               @keyframes fadeIn {
                 from { opacity: 0; }
                 to { opacity: 1; }
@@ -906,342 +1042,345 @@ const DetalleCursoEstudiante: React.FC<DetalleCursoEstudianteProps> = ({ darkMod
               }
             `}</style>
 
-            {/* Modal */}
-            <div
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                background: darkMode
-                  ? 'rgba(15, 23, 42, 0.95)'
-                  : 'rgba(255, 255, 255, 0.95)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                borderRadius: isPreviewFullscreen ? '0' : '12px',
-                padding: isPreviewFullscreen ? '1rem' : '1.25rem',
-                maxWidth: isPreviewFullscreen ? '100%' : '50rem',
-                width: isPreviewFullscreen ? '100%' : '90%',
-                height: isPreviewFullscreen ? '100%' : 'auto',
-                maxHeight: isPreviewFullscreen ? '100%' : '85vh',
-                overflowY: 'hidden',
-                display: 'flex',
-                flexDirection: 'column',
-                border: isPreviewFullscreen ? 'none' : `1px solid ${darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
-                boxShadow: darkMode
-                  ? '0 20px 60px -12px rgba(0, 0, 0, 0.5)'
-                  : '0 20px 60px -12px rgba(0, 0, 0, 0.15)',
-                zIndex: 99999,
-                animation: 'scaleIn 0.3s ease-out',
-                transition: 'all 0.3s ease-in-out'
-              }}>
-              {/* Header */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexShrink: 0 }}>
-                <h3 style={{ color: theme.textPrimary, fontSize: '1rem', fontWeight: '700', margin: 0 }}>
-                  Vista Previa del Archivo
-                </h3>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+              {/* Modal */}
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  background: darkMode
+                    ? 'rgba(15, 23, 42, 0.95)'
+                    : 'rgba(255, 255, 255, 0.95)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  borderRadius: isPreviewFullscreen ? '0' : '12px',
+                  padding: isPreviewFullscreen ? '1rem' : '1.25rem',
+                  maxWidth: isPreviewFullscreen ? '100%' : '50rem',
+                  width: isPreviewFullscreen ? '100%' : '90%',
+                  height: isPreviewFullscreen ? '100%' : 'auto',
+                  maxHeight: isPreviewFullscreen ? '100%' : '85vh',
+                  overflowY: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  border: isPreviewFullscreen ? 'none' : `1px solid ${darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+                  boxShadow: darkMode
+                    ? '0 20px 60px -12px rgba(0, 0, 0, 0.5)'
+                    : '0 20px 60px -12px rgba(0, 0, 0, 0.15)',
+                  zIndex: 99999,
+                  animation: 'scaleIn 0.3s ease-out',
+                  transition: 'all 0.3s ease-in-out'
+                }}>
+                {/* Header */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexShrink: 0 }}>
+                  <h3 style={{ color: theme.textPrimary, fontSize: '1rem', fontWeight: '700', margin: 0 }}>
+                    Vista Previa del Archivo
+                  </h3>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsPreviewFullscreen(!isPreviewFullscreen);
+                      }}
+                      style={{
+                        background: 'var(--estudiante-input-bg, rgba(255, 255, 255, 0.05))',
+                        border: '1px solid var(--estudiante-border, rgba(255, 255, 255, 0.1))',
+                        borderRadius: '8px',
+                        padding: '0.5rem',
+                        color: 'var(--estudiante-text-primary, #fff)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.2s ease'
+                      }}
+                      title={isPreviewFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
+                    >
+                      {isPreviewFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setArchivoPreview(null);
+                        setIsPreviewFullscreen(false);
+                      }}
+                      style={{
+                        background: 'var(--estudiante-input-bg, rgba(255, 255, 255, 0.05))',
+                        border: '1px solid var(--estudiante-border, rgba(255, 255, 255, 0.1))',
+                        borderRadius: '8px',
+                        padding: '0.5rem',
+                        color: 'var(--estudiante-text-primary, #fff)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'var(--estudiante-hover-bg, rgba(255, 255, 255, 0.1))';
+                        e.currentTarget.style.transform = 'rotate(90deg)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'var(--estudiante-input-bg, rgba(255, 255, 255, 0.05))';
+                        e.currentTarget.style.transform = 'rotate(0deg)';
+                      }}
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Información del archivo - Ocultar en fullscreen */}
+                {!isPreviewFullscreen && (
+                  <div style={{
+                    background: darkMode ? 'rgba(251, 191, 36, 0.1)' : 'rgba(251, 191, 36, 0.05)',
+                    border: '1px solid rgba(251, 191, 36, 0.3)',
+                    borderRadius: '0.5rem',
+                    padding: '0.75rem',
+                    marginBottom: '0.75rem',
+                    flexShrink: 0
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+                      <FileText size={20} color="#fbbf24" />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ color: theme.textPrimary, fontSize: '0.875rem', fontWeight: '600', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {archivoPreview.file.name}
+                        </p>
+                        <p style={{ color: theme.textMuted, fontSize: '0.75rem', margin: 0 }}>
+                          Tamaño: {(archivoPreview.file.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Vista previa */}
+                <div style={{
+                  background: darkMode ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)',
+                  borderRadius: '0.5rem',
+                  padding: isPreviewFullscreen ? '0' : '0.75rem',
+                  marginBottom: '0.75rem',
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                  minHeight: 0
+                }}>
+                  {archivoPreview.file.type.startsWith('image/') ? (
+                    // Vista previa de imagen
+                    <img
+                      src={archivoPreview.preview}
+                      alt="Preview"
+                      style={{
+                        maxWidth: '100%',
+                        maxHeight: '100%',
+                        borderRadius: isPreviewFullscreen ? '0' : '0.5rem',
+                        objectFit: 'contain'
+                      }}
+                    />
+                  ) : archivoPreview.file.type === 'application/pdf' ? (
+                    // Vista previa de PDF
+                    <iframe
+                      src={archivoPreview.preview}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        border: 'none',
+                        borderRadius: isPreviewFullscreen ? '0' : '0.5rem'
+                      }}
+                      title="PDF Preview"
+                    />
+                  ) : (
+                    // Icono para otros tipos de archivo
+                    <div style={{ textAlign: 'center' }}>
+                      <FileType size={80} color={theme.textMuted} />
+                      <p style={{ color: theme.textMuted, marginTop: '1em' }}>
+                        No se puede previsualizar este tipo de archivo
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Botones */}
+                <div style={{ display: 'flex', gap: '0.625rem', justifyContent: 'flex-end', flexShrink: 0 }}>
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsPreviewFullscreen(!isPreviewFullscreen);
-                    }}
+                    onClick={() => setArchivoPreview(null)}
                     style={{
-                      background: 'var(--estudiante-input-bg, rgba(255, 255, 255, 0.05))',
-                      border: '1px solid var(--estudiante-border, rgba(255, 255, 255, 0.1))',
-                      borderRadius: '8px',
-                      padding: '0.5rem',
-                      color: 'var(--estudiante-text-primary, #fff)',
+                      background: darkMode ? 'rgba(255,255,255,0.05)' : '#fff',
+                      border: darkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid #e5e7eb',
+                      borderRadius: '0.5rem',
+                      padding: '0.625rem 1.25rem',
+                      color: darkMode ? '#fff' : '#64748b',
+                      fontWeight: '600',
                       cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      transition: 'all 0.2s ease'
-                    }}
-                    title={isPreviewFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
-                  >
-                    {isPreviewFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setArchivoPreview(null);
-                      setIsPreviewFullscreen(false);
-                    }}
-                    style={{
-                      background: 'var(--estudiante-input-bg, rgba(255, 255, 255, 0.05))',
-                      border: '1px solid var(--estudiante-border, rgba(255, 255, 255, 0.1))',
-                      borderRadius: '8px',
-                      padding: '0.5rem',
-                      color: 'var(--estudiante-text-primary, #fff)',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
+                      fontSize: '0.875rem',
                       transition: 'all 0.2s ease'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'var(--estudiante-hover-bg, rgba(255, 255, 255, 0.1))';
-                      e.currentTarget.style.transform = 'rotate(90deg)';
+                      e.currentTarget.style.borderColor = darkMode ? 'rgba(255,255,255,0.2)' : '#cbd5e1';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'var(--estudiante-input-bg, rgba(255, 255, 255, 0.05))';
-                      e.currentTarget.style.transform = 'rotate(0deg)';
+                      e.currentTarget.style.borderColor = darkMode ? 'rgba(255,255,255,0.1)' : '#e5e7eb';
                     }}
                   >
-                    <X size={20} />
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={confirmarSubida}
+                    disabled={uploadingTarea !== null}
+                    style={{
+                      background: uploadingTarea !== null
+                        ? 'rgba(251, 191, 36, 0.6)'
+                        : 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      padding: '0.625rem 1.25rem',
+                      color: darkMode ? '#000' : '#fff',
+                      fontWeight: '700',
+                      cursor: uploadingTarea !== null ? 'not-allowed' : 'pointer',
+                      fontSize: '0.875rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      boxShadow: '0 4px 12px rgba(251, 191, 36, 0.3)',
+                      transition: 'all 0.2s ease',
+                      opacity: uploadingTarea !== null ? 0.6 : 1
+                    }}
+                    onMouseEnter={(e) => {
+                      if (uploadingTarea === null) {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 6px 16px rgba(251, 191, 36, 0.4)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(251, 191, 36, 0.3)';
+                    }}
+                  >
+                    {uploadingTarea !== null ? (
+                      <>
+                        <div style={{
+                          width: '16px',
+                          height: '16px',
+                          border: '2px solid rgba(0,0,0,0.3)',
+                          borderTop: '2px solid #000',
+                          borderRadius: '50%',
+                          animation: 'spin 1s linear infinite'
+                        }} />
+                        Subiendo...
+                      </>
+                    ) : (
+                      <>
+                        <Upload size={18} />
+                        {archivoPreview.tipo === 'entregar' ? 'Confirmar y Entregar' : 'Confirmar y Actualizar'}
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
+            </div>
+          </>,
+          document.body
+        )
+      }
 
-              {/* Información del archivo - Ocultar en fullscreen */}
-              {!isPreviewFullscreen && (
-                <div style={{
-                  background: darkMode ? 'rgba(251, 191, 36, 0.1)' : 'rgba(251, 191, 36, 0.05)',
-                  border: '1px solid rgba(251, 191, 36, 0.3)',
-                  borderRadius: '0.5rem',
-                  padding: '0.75rem',
-                  marginBottom: '0.75rem',
-                  flexShrink: 0
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-                    <FileText size={20} color="#fbbf24" />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ color: theme.textPrimary, fontSize: '0.875rem', fontWeight: '600', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {archivoPreview.file.name}
-                      </p>
-                      <p style={{ color: theme.textMuted, fontSize: '0.75rem', margin: 0 }}>
-                        Tamaño: {(archivoPreview.file.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Vista previa */}
+      {/* Modal de Confirmación de Eliminación */}
+      {
+        showConfirmDelete && createPortal(
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 99999,
+            backdropFilter: 'blur(8px)',
+            animation: 'fadeIn 0.2s ease-out'
+          }}>
+            <div style={{
+              background: darkMode ? 'linear-gradient(135deg, rgba(0,0,0,0.95) 0%, rgba(26,26,46,0.95) 100%)' : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.95) 100%)',
+              borderRadius: '1rem',
+              border: `1px solid ${darkMode ? 'rgba(239, 68, 68, 0.3)' : 'rgba(239, 68, 68, 0.2)'}`,
+              padding: '1.5rem',
+              width: '90%',
+              maxWidth: '400px',
+              boxShadow: darkMode ? '0 1rem 3rem rgba(0, 0, 0, 0.5)' : '0 1rem 3rem rgba(0, 0, 0, 0.2)',
+              animation: 'scaleIn 0.2s ease-out'
+            }}>
               <div style={{
-                background: darkMode ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)',
-                borderRadius: '0.5rem',
-                padding: isPreviewFullscreen ? '0' : '0.75rem',
-                marginBottom: '0.75rem',
-                flex: 1,
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                overflow: 'hidden',
-                minHeight: 0
+                gap: '0.75rem',
+                marginBottom: '1rem'
               }}>
-                {archivoPreview.file.type.startsWith('image/') ? (
-                  // Vista previa de imagen
-                  <img
-                    src={archivoPreview.preview}
-                    alt="Preview"
-                    style={{
-                      maxWidth: '100%',
-                      maxHeight: '100%',
-                      borderRadius: isPreviewFullscreen ? '0' : '0.5rem',
-                      objectFit: 'contain'
-                    }}
-                  />
-                ) : archivoPreview.file.type === 'application/pdf' ? (
-                  // Vista previa de PDF
-                  <iframe
-                    src={archivoPreview.preview}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      border: 'none',
-                      borderRadius: isPreviewFullscreen ? '0' : '0.5rem'
-                    }}
-                    title="PDF Preview"
-                  />
-                ) : (
-                  // Icono para otros tipos de archivo
-                  <div style={{ textAlign: 'center' }}>
-                    <FileType size={80} color={theme.textMuted} />
-                    <p style={{ color: theme.textMuted, marginTop: '1em' }}>
-                      No se puede previsualizar este tipo de archivo
-                    </p>
-                  </div>
-                )}
+                <AlertTriangle size={24} color="#ef4444" />
+                <h3 style={{
+                  color: darkMode ? '#fff' : '#1e293b',
+                  fontSize: '1.25rem',
+                  fontWeight: '700',
+                  margin: 0
+                }}>
+                  Confirmar Eliminación
+                </h3>
               </div>
-
-              {/* Botones */}
-              <div style={{ display: 'flex', gap: '0.625rem', justifyContent: 'flex-end', flexShrink: 0 }}>
+              <p style={{
+                color: darkMode ? 'rgba(255,255,255,0.7)' : 'rgba(30,41,59,0.7)',
+                fontSize: '0.95rem',
+                lineHeight: '1.5',
+                margin: '0 0 1.5rem 0'
+              }}>
+                ¿Estás seguro de eliminar esta entrega? Esta acción no se puede deshacer.
+              </p>
+              <div style={{
+                display: 'flex',
+                gap: '0.75rem',
+                justifyContent: 'flex-end'
+              }}>
                 <button
-                  onClick={() => setArchivoPreview(null)}
+                  onClick={() => {
+                    setShowConfirmDelete(false);
+                    setDeleteData(null);
+                  }}
                   style={{
-                    background: darkMode ? 'rgba(255,255,255,0.05)' : '#fff',
-                    border: darkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid #e5e7eb',
-                    borderRadius: '0.5rem',
                     padding: '0.625rem 1.25rem',
-                    color: darkMode ? '#fff' : '#64748b',
+                    background: darkMode ? 'rgba(255,255,255,0.1)' : '#f1f5f9',
+                    border: `1px solid ${darkMode ? 'rgba(255,255,255,0.2)' : '#e2e8f0'}`,
+                    borderRadius: '0.5rem',
+                    color: darkMode ? '#fff' : '#475569',
+                    fontSize: '0.875rem',
                     fontWeight: '600',
                     cursor: 'pointer',
-                    fontSize: '0.875rem',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = darkMode ? 'rgba(255,255,255,0.2)' : '#cbd5e1';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = darkMode ? 'rgba(255,255,255,0.1)' : '#e5e7eb';
+                    transition: 'all 0.2s'
                   }}
                 >
                   Cancelar
                 </button>
                 <button
-                  onClick={confirmarSubida}
-                  disabled={uploadingTarea !== null}
+                  onClick={handleDeleteEntrega}
                   style={{
-                    background: uploadingTarea !== null
-                      ? 'rgba(251, 191, 36, 0.6)'
-                      : 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+                    padding: '0.625rem 1.25rem',
+                    background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
                     border: 'none',
                     borderRadius: '0.5rem',
-                    padding: '0.625rem 1.25rem',
-                    color: darkMode ? '#000' : '#fff',
-                    fontWeight: '700',
-                    cursor: uploadingTarea !== null ? 'not-allowed' : 'pointer',
+                    color: '#fff',
                     fontSize: '0.875rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    boxShadow: '0 4px 12px rgba(251, 191, 36, 0.3)',
-                    transition: 'all 0.2s ease',
-                    opacity: uploadingTarea !== null ? 0.6 : 1
-                  }}
-                  onMouseEnter={(e) => {
-                    if (uploadingTarea === null) {
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = '0 6px 16px rgba(251, 191, 36, 0.4)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(251, 191, 36, 0.3)';
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    boxShadow: '0 2px 8px rgba(239, 68, 68, 0.3)'
                   }}
                 >
-                  {uploadingTarea !== null ? (
-                    <>
-                      <div style={{
-                        width: '16px',
-                        height: '16px',
-                        border: '2px solid rgba(0,0,0,0.3)',
-                        borderTop: '2px solid #000',
-                        borderRadius: '50%',
-                        animation: 'spin 1s linear infinite'
-                      }} />
-                      Subiendo...
-                    </>
-                  ) : (
-                    <>
-                      <Upload size={18} />
-                      {archivoPreview.tipo === 'entregar' ? 'Confirmar y Entregar' : 'Confirmar y Actualizar'}
-                    </>
-                  )}
+                  Eliminar
                 </button>
               </div>
             </div>
-          </div>
-        </>,
-        document.body
-      )}
-
-      {/* Modal de Confirmación de Eliminación */}
-      {showConfirmDelete && createPortal(
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 99999,
-          backdropFilter: 'blur(8px)',
-          animation: 'fadeIn 0.2s ease-out'
-        }}>
-          <div style={{
-            background: darkMode ? 'linear-gradient(135deg, rgba(0,0,0,0.95) 0%, rgba(26,26,46,0.95) 100%)' : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.95) 100%)',
-            borderRadius: '1rem',
-            border: `1px solid ${darkMode ? 'rgba(239, 68, 68, 0.3)' : 'rgba(239, 68, 68, 0.2)'}`,
-            padding: '1.5rem',
-            width: '90%',
-            maxWidth: '400px',
-            boxShadow: darkMode ? '0 1rem 3rem rgba(0, 0, 0, 0.5)' : '0 1rem 3rem rgba(0, 0, 0, 0.2)',
-            animation: 'scaleIn 0.2s ease-out'
-          }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              marginBottom: '1rem'
-            }}>
-              <AlertTriangle size={24} color="#ef4444" />
-              <h3 style={{
-                color: darkMode ? '#fff' : '#1e293b',
-                fontSize: '1.25rem',
-                fontWeight: '700',
-                margin: 0
-              }}>
-                Confirmar Eliminación
-              </h3>
-            </div>
-            <p style={{
-              color: darkMode ? 'rgba(255,255,255,0.7)' : 'rgba(30,41,59,0.7)',
-              fontSize: '0.95rem',
-              lineHeight: '1.5',
-              margin: '0 0 1.5rem 0'
-            }}>
-              ¿Estás seguro de eliminar esta entrega? Esta acción no se puede deshacer.
-            </p>
-            <div style={{
-              display: 'flex',
-              gap: '0.75rem',
-              justifyContent: 'flex-end'
-            }}>
-              <button
-                onClick={() => {
-                  setShowConfirmDelete(false);
-                  setDeleteData(null);
-                }}
-                style={{
-                  padding: '0.625rem 1.25rem',
-                  background: darkMode ? 'rgba(255,255,255,0.1)' : '#f1f5f9',
-                  border: `1px solid ${darkMode ? 'rgba(255,255,255,0.2)' : '#e2e8f0'}`,
-                  borderRadius: '0.5rem',
-                  color: darkMode ? '#fff' : '#475569',
-                  fontSize: '0.875rem',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleDeleteEntrega}
-                style={{
-                  padding: '0.625rem 1.25rem',
-                  background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-                  border: 'none',
-                  borderRadius: '0.5rem',
-                  color: '#fff',
-                  fontSize: '0.875rem',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  boxShadow: '0 2px 8px rgba(239, 68, 68, 0.3)'
-                }}
-              >
-                Eliminar
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
-    </div>
+          </div>,
+          document.body
+        )
+      }
+    </div >
   );
 };
 

@@ -630,16 +630,35 @@ const GestionCursos = () => {
       const fechaFin = new Date(payload.fecha_fin);
 
       if (!isNaN(fechaInicio.getTime()) && !isNaN(fechaFin.getTime())) {
-        // Calcular la diferencia en meses
-        const diffYears = fechaFin.getFullYear() - fechaInicio.getFullYear();
-        const diffMonths = fechaFin.getMonth() - fechaInicio.getMonth();
-        const totalMonths = diffYears * 12 + diffMonths;
+        // Calcular la fecha fin esperada basada en la duración del tipo de curso
+        const fechaFinEsperada = new Date(fechaInicio);
+        fechaFinEsperada.setMonth(fechaFinEsperada.getMonth() + tipoSeleccionado.duracion_meses);
 
-        // Validar que la diferencia sea igual a la duración del tipo de curso (con un margen de 1 mes)
-        if (Math.abs(totalMonths - tipoSeleccionado.duracion_meses) > 1) {
-          // Mostrar alerta visual profesional
+        // Calcular la diferencia en días entre la fecha fin ingresada y la esperada
+        const diffTime = Math.abs(fechaFin.getTime() - fechaFinEsperada.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        // Permitir un margen de 5 días para ajustes manuales y variaciones de fin de mes
+        if (diffDays > 5) {
+          // Calcular la duración real en meses para el mensaje
+          const diffYears = fechaFin.getFullYear() - fechaInicio.getFullYear();
+          const diffMonths = fechaFin.getMonth() - fechaInicio.getMonth();
+          const diffDaysInMonth = fechaFin.getDate() - fechaInicio.getDate();
+          const totalMonths = diffYears * 12 + diffMonths + (diffDaysInMonth >= 0 ? 0 : -1);
+
+          // Formatear fechas en formato DD-MM-YYYY
+          const formatearFecha = (fecha: Date) => {
+            const dia = String(fecha.getDate()).padStart(2, '0');
+            const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+            const año = fecha.getFullYear();
+            return `${dia}-${mes}-${año}`;
+          };
+
+          const fechaEsperadaStr = formatearFecha(fechaFinEsperada);
+          const fechaIngresadaStr = formatearFecha(fechaFin);
+
           showToast.error(
-            `La duración del curso debe ser de ${tipoSeleccionado.duracion_meses} meses según el tipo de curso seleccionado. La duración actual es de ${totalMonths} meses.`,
+            `La duración del curso debe ser de ${tipoSeleccionado.duracion_meses} meses según el tipo de curso seleccionado. La fecha de fin esperada es ${fechaEsperadaStr}, pero ingresaste ${fechaIngresadaStr} (aproximadamente ${totalMonths} meses).`,
             darkMode
           );
           return;

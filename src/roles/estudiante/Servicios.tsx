@@ -65,9 +65,7 @@ const Servicios: React.FC<ServiciosProps> = ({ darkMode }) => {
       contact: 'pagos@sgabelleza.edu.ec',
       action: 'Gestionar Pagos',
       features: [
-        { text: 'Pagos online seguros', icon: Shield },
         { text: 'Historial de pagos', icon: Calendar },
-        { text: 'Múltiples métodos de pago', icon: Zap }
       ],
       isSpecial: true
     }
@@ -174,7 +172,7 @@ const Servicios: React.FC<ServiciosProps> = ({ darkMode }) => {
         {filteredServices.map((service) => {
           const Icon = service.icon;
           const statusColor = getStatusColor(service.status);
-          
+
           return (
             <div
               key={service.id}
@@ -184,8 +182,8 @@ const Servicios: React.FC<ServiciosProps> = ({ darkMode }) => {
                 borderRadius: '1rem',
                 padding: '1.5rem',
                 backdropFilter: 'blur(10px)',
-                boxShadow: darkMode 
-                  ? '0 4px 20px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(251, 191, 36, 0.1)' 
+                boxShadow: darkMode
+                  ? '0 4px 20px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(251, 191, 36, 0.1)'
                   : '0 4px 20px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(251, 191, 36, 0.1)',
                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 cursor: 'pointer',
@@ -194,14 +192,14 @@ const Servicios: React.FC<ServiciosProps> = ({ darkMode }) => {
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = darkMode 
-                  ? '0 12px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(251, 191, 36, 0.2)' 
+                e.currentTarget.style.boxShadow = darkMode
+                  ? '0 12px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(251, 191, 36, 0.2)'
                   : '0 12px 32px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(251, 191, 36, 0.2)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = darkMode 
-                  ? '0 4px 20px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(251, 191, 36, 0.1)' 
+                e.currentTarget.style.boxShadow = darkMode
+                  ? '0 4px 20px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(251, 191, 36, 0.1)'
                   : '0 4px 20px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(251, 191, 36, 0.1)';
               }}
             >
@@ -231,9 +229,9 @@ const Servicios: React.FC<ServiciosProps> = ({ darkMode }) => {
                     }}>
                       {service.title}
                     </h3>
-                    <div style={{ 
-                      display: 'inline-flex', 
-                      alignItems: 'center', 
+                    <div style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
                       gap: '0.375em',
                       padding: '0.25em 0.625em',
                       background: `${statusColor}15`,
@@ -285,9 +283,9 @@ const Servicios: React.FC<ServiciosProps> = ({ darkMode }) => {
                   {service.features.map((feature: any, index: number) => {
                     const FeatureIcon = feature.icon;
                     return (
-                      <div key={index} style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
+                      <div key={index} style={{
+                        display: 'flex',
+                        alignItems: 'center',
                         gap: '0.625em',
                         padding: '0.5em 0.75em',
                         background: darkMode ? 'rgba(251, 191, 36, 0.05)' : 'rgba(251, 191, 36, 0.08)',
@@ -363,7 +361,7 @@ const Servicios: React.FC<ServiciosProps> = ({ darkMode }) => {
               </div>
 
               {/* Botón de acción */}
-              <button 
+              <button
                 onClick={() => {
                   if ((service as any).isSpecial && service.id === 1) {
                     setShowPagosMenuales(true);
@@ -371,8 +369,8 @@ const Servicios: React.FC<ServiciosProps> = ({ darkMode }) => {
                 }}
                 style={{
                   width: '100%',
-                  background: (service as any).isSpecial 
-                    ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' 
+                  background: (service as any).isSpecial
+                    ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
                     : `linear-gradient(135deg, ${theme.accent} 0%, ${theme.warning} 100%)`,
                   color: '#fff',
                   border: 'none',
@@ -439,11 +437,11 @@ const Servicios: React.FC<ServiciosProps> = ({ darkMode }) => {
             margin: 0
           }}>
             Intenta con otros términos de búsqueda
-        </p>
-      </div>
-    )}
-  </div>
-);
+          </p>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default Servicios;

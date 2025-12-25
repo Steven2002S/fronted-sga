@@ -18,6 +18,7 @@ import {
   EyeOff,
   RefreshCw,
   Edit,
+  Award,
 } from "lucide-react";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -41,6 +42,11 @@ interface Modulo {
   estado: string;
   total_tareas: number;
   promedios_publicados: boolean;
+  categorias?: {
+    id: string | number;
+    nombre: string;
+    ponderacion: number | string;
+  }[];
 }
 
 interface Tarea {
@@ -59,6 +65,8 @@ interface Tarea {
   estado: string;
   total_entregas: number;
   entregas_calificadas: number;
+  categoria_nombre?: string;
+  categoria_ponderacion?: number;
 }
 
 interface Curso {
@@ -128,6 +136,7 @@ const DetalleCursoDocente: React.FC<DetalleCursoDocenteProps> = ({
   }>({});
   const [loading, setLoading] = useState(true);
   const [showModalModulo, setShowModalModulo] = useState(false);
+  const [moduloEditar, setModuloEditar] = useState<Modulo | null>(null);
   const [showModalTarea, setShowModalTarea] = useState(false);
   const [tareaEditar, setTareaEditar] = useState<Tarea | null>(null);
   const [showModalEntregas, setShowModalEntregas] = useState(false);
@@ -296,6 +305,12 @@ const DetalleCursoDocente: React.FC<DetalleCursoDocenteProps> = ({
   };
 
   const handleCrearModulo = () => {
+    setModuloEditar(null); // Asegurar que está en modo creación
+    setShowModalModulo(true);
+  };
+
+  const handleEditarModulo = (modulo: Modulo) => {
+    setModuloEditar(modulo);
     setShowModalModulo(true);
   };
 
@@ -1082,6 +1097,43 @@ const DetalleCursoDocente: React.FC<DetalleCursoDocenteProps> = ({
                         {modulo.promedios_publicados ? "Visible" : "Oculto"}
                       </button>
 
+                      {/* Botón Editar Módulo */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditarModulo(modulo);
+                        }}
+                        style={{
+                          background: darkMode
+                            ? "rgba(168, 85, 247, 0.1)"
+                            : "rgba(168, 85, 247, 0.08)",
+                          border: `1px solid ${darkMode ? "rgba(168, 85, 247, 0.3)" : "rgba(168, 85, 247, 0.2)"}`,
+                          borderRadius: "8px",
+                          padding: "6px 10px",
+                          color: "#a855f7",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          cursor: "pointer",
+                          transition: "all 0.2s ease",
+                          fontWeight: "600",
+                          fontSize: "0.8rem",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background =
+                            "rgba(168, 85, 247, 0.15)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = darkMode
+                            ? "rgba(168, 85, 247, 0.1)"
+                            : "rgba(168, 85, 247, 0.08)";
+                        }}
+                        title="Editar módulo"
+                      >
+                        <Edit size={16} />
+                        Editar
+                      </button>
+
                       {modulo.estado === "finalizado" ? (
                         <button
                           onClick={(e) => {
@@ -1280,286 +1332,359 @@ const DetalleCursoDocente: React.FC<DetalleCursoDocenteProps> = ({
                           gap: "10px",
                         }}
                       >
-                        {tareasPorModulo[modulo.id_modulo].map((tarea) => (
-                          <div
-                            key={tarea.id_tarea}
-                            style={{
-                              background: darkMode
-                                ? "rgba(255,255,255,0.03)"
-                                : "rgba(255,255,255,0.98)",
-                              border: darkMode
-                                ? "1px solid rgba(255,255,255,0.1)"
-                                : "1px solid #e5e7eb",
-                              borderRadius: "10px",
-                              padding: isMobile ? "10px" : "12px",
-                              cursor: "pointer",
-                              transition: "all 0.3s ease",
-                              boxShadow: darkMode
-                                ? "none"
-                                : "0 1px 3px rgba(0,0,0,0.05)",
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.background = darkMode
-                                ? "rgba(255,255,255,0.05)"
-                                : "rgba(59, 130, 246, 0.05)";
-                              e.currentTarget.style.borderColor = darkMode
-                                ? "rgba(239, 68, 68, 0.3)"
-                                : "rgba(59, 130, 246, 0.3)";
-                              if (!darkMode)
-                                e.currentTarget.style.boxShadow =
-                                  "0 4px 12px rgba(0,0,0,0.08)";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.background = darkMode
-                                ? "rgba(255,255,255,0.03)"
-                                : "rgba(255,255,255,0.8)";
-                              e.currentTarget.style.borderColor = darkMode
-                                ? "rgba(255,255,255,0.1)"
-                                : "#e5e7eb";
-                              if (!darkMode)
-                                e.currentTarget.style.boxShadow =
-                                  "0 1px 3px rgba(0,0,0,0.05)";
-                            }}
-                            onClick={() => {
-                              setTareaSeleccionada({
-                                id: tarea.id_tarea,
-                                nombre: tarea.titulo,
-                                nota_maxima: tarea.nota_maxima,
-                                ponderacion: tarea.ponderacion,
-                              });
-                              setShowModalEntregas(true);
-                            }}
-                          >
-                            <div
-                              style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "flex-start",
-                                flexDirection: isMobile ? "column" : "row",
-                                gap: isMobile ? "8px" : "10px",
-                              }}
-                            >
-                              <div style={{ flex: 1, width: isMobile ? "100%" : "auto" }}>
-                                <h4
-                                  style={{
-                                    color: theme.textPrimary,
-                                    fontSize: isMobile ? "0.9rem" : "0.95rem",
-                                    fontWeight: "800",
-                                    marginBottom: "6px",
-                                  }}
-                                >
-                                  {tarea.titulo}
-                                </h4>
-                                {tarea.descripcion && (
-                                  <p
-                                    style={{
-                                      color: theme.textMuted,
-                                      fontSize: "0.8rem",
-                                      marginBottom: "8px",
-                                    }}
-                                  >
-                                    {tarea.descripcion}
-                                  </p>
+                        {/* Agrupar tareas por categoría */}
+                        {(() => {
+                          const tareasModulo = tareasPorModulo[modulo.id_modulo] || [];
+                          const tareasPorCategoria = tareasModulo.reduce((acc, tarea) => {
+                            const key = tarea.categoria_nombre
+                              ? `${tarea.categoria_nombre}|${tarea.categoria_ponderacion}`
+                              : 'Sin Categoría|0';
+                            if (!acc[key]) acc[key] = [];
+                            acc[key].push(tarea);
+                            return acc;
+                          }, {} as Record<string, typeof tareasModulo>);
+
+                          return Object.entries(tareasPorCategoria).map(([key, tareas]) => {
+                            const [nombreCat, ponderacionCat] = key.split('|');
+
+                            return (
+                              <div key={key}>
+                                {nombreCat !== 'Sin Categoría' && (
+                                  <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.75rem',
+                                    marginBottom: '1rem',
+                                    marginTop: '1.5rem',
+                                    padding: '0.75rem 1rem',
+                                    background: darkMode ? 'rgba(59, 130, 246, 0.1)' : 'rgba(59, 130, 246, 0.05)',
+                                    borderLeft: `4px solid ${theme.accent}`,
+                                    borderRadius: '0 0.5rem 0.5rem 0',
+                                    boxShadow: darkMode ? 'none' : '0 2px 4px rgba(0,0,0,0.05)',
+                                  }}>
+                                    <Award size={20} color={theme.accent} />
+                                    <h5 style={{
+                                      margin: 0,
+                                      fontSize: '1rem',
+                                      fontWeight: '800',
+                                      color: theme.textPrimary,
+                                      textTransform: 'uppercase',
+                                      letterSpacing: '0.05em',
+                                      flex: 1
+                                    }}>
+                                      {nombreCat}
+                                    </h5>
+                                    <div style={{
+                                      background: theme.accent,
+                                      color: '#fff',
+                                      padding: '0.25rem 0.75rem',
+                                      borderRadius: '1rem',
+                                      fontSize: '0.75rem',
+                                      fontWeight: '700',
+                                      boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)'
+                                    }}>
+                                      {ponderacionCat} pts
+                                    </div>
+                                  </div>
                                 )}
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    gap: "12px",
-                                    fontSize: "0.8rem",
-                                    flexWrap: "wrap",
-                                  }}
-                                >
-                                  <span
-                                    style={{
-                                      color: theme.textMuted,
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: "5px",
-                                    }}
-                                  >
-                                    <Clock size={12} />
-                                    Límite:{" "}
-                                    {new Date(
-                                      tarea.fecha_limite,
-                                    ).toLocaleDateString()}{" "}
-                                    {new Date(
-                                      tarea.fecha_limite,
-                                    ).toLocaleTimeString("es-EC", {
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                      hour12: false,
-                                    })}
-                                  </span>
-                                  <span
-                                    style={{
-                                      color: "#10b981",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: "5px",
-                                    }}
-                                  >
-                                    <CheckCircle size={12} />
-                                    {tarea.entregas_calificadas}/
-                                    {tarea.total_entregas} calificadas
-                                  </span>
-                                  <span
-                                    style={{
-                                      color: "#ef4444",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: "5px",
-                                    }}
-                                  >
-                                    <AlertCircle size={12} />
-                                    Nota: {tarea.nota_maxima} | Peso:{" "}
-                                    {tarea.ponderacion}pts
-                                  </span>
+
+                                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                                  {tareas.map((tarea) => (
+                                    <div
+                                      key={tarea.id_tarea}
+                                      style={{
+                                        background: darkMode
+                                          ? "rgba(255,255,255,0.03)"
+                                          : "rgba(255,255,255,0.98)",
+                                        border: darkMode
+                                          ? "1px solid rgba(255,255,255,0.1)"
+                                          : "1px solid #e5e7eb",
+                                        borderRadius: "10px",
+                                        padding: isMobile ? "10px" : "12px",
+                                        cursor: "pointer",
+                                        transition: "all 0.3s ease",
+                                        boxShadow: darkMode
+                                          ? "none"
+                                          : "0 1px 3px rgba(0,0,0,0.05)",
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        e.currentTarget.style.background = darkMode
+                                          ? "rgba(255,255,255,0.05)"
+                                          : "rgba(59, 130, 246, 0.05)";
+                                        e.currentTarget.style.borderColor = darkMode
+                                          ? "rgba(239, 68, 68, 0.3)"
+                                          : "rgba(59, 130, 246, 0.3)";
+                                        if (!darkMode)
+                                          e.currentTarget.style.boxShadow =
+                                            "0 4px 12px rgba(0,0,0,0.08)";
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        e.currentTarget.style.background = darkMode
+                                          ? "rgba(255,255,255,0.03)"
+                                          : "rgba(255,255,255,0.8)";
+                                        e.currentTarget.style.borderColor = darkMode
+                                          ? "rgba(255,255,255,0.1)"
+                                          : "#e5e7eb";
+                                        if (!darkMode)
+                                          e.currentTarget.style.boxShadow =
+                                            "0 1px 3px rgba(0,0,0,0.05)";
+                                      }}
+                                      onClick={() => {
+                                        const pesoReal = tarea.categoria_nombre && tarea.categoria_ponderacion
+                                          ? (parseFloat(tarea.categoria_ponderacion.toString()) / tareas.length)
+                                          : tarea.ponderacion;
+
+                                        setTareaSeleccionada({
+                                          id: tarea.id_tarea,
+                                          nombre: tarea.titulo,
+                                          nota_maxima: tarea.nota_maxima,
+                                          ponderacion: pesoReal,
+                                        });
+                                        setShowModalEntregas(true);
+                                      }}
+                                    >
+                                      <div
+                                        style={{
+                                          display: "flex",
+                                          justifyContent: "space-between",
+                                          alignItems: "flex-start",
+                                          flexDirection: isMobile ? "column" : "row",
+                                          gap: isMobile ? "8px" : "10px",
+                                        }}
+                                      >
+                                        <div style={{ flex: 1, width: isMobile ? "100%" : "auto" }}>
+                                          <h4
+                                            style={{
+                                              color: theme.textPrimary,
+                                              fontSize: isMobile ? "0.9rem" : "0.95rem",
+                                              fontWeight: "800",
+                                              marginBottom: "6px",
+                                            }}
+                                          >
+                                            {tarea.titulo}
+                                          </h4>
+                                          {tarea.descripcion && (
+                                            <p
+                                              style={{
+                                                color: theme.textMuted,
+                                                fontSize: "0.8rem",
+                                                marginBottom: "8px",
+                                              }}
+                                            >
+                                              {tarea.descripcion}
+                                            </p>
+                                          )}
+                                          <div
+                                            style={{
+                                              display: "flex",
+                                              gap: "12px",
+                                              fontSize: "0.8rem",
+                                              flexWrap: "wrap",
+                                            }}
+                                          >
+                                            <span
+                                              style={{
+                                                color: theme.textMuted,
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: "5px",
+                                              }}
+                                            >
+                                              <Clock size={12} />
+                                              Límite:{" "}
+                                              {new Date(
+                                                tarea.fecha_limite,
+                                              ).toLocaleDateString()}{" "}
+                                              {new Date(
+                                                tarea.fecha_limite,
+                                              ).toLocaleTimeString("es-EC", {
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                                hour12: false,
+                                              })}
+                                            </span>
+                                            <span
+                                              style={{
+                                                color: "#10b981",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: "5px",
+                                              }}
+                                            >
+                                              <CheckCircle size={12} />
+                                              {tarea.entregas_calificadas}/
+                                              {tarea.total_entregas} calificadas
+                                            </span>
+                                            <span
+                                              style={{
+                                                color: "#ef4444",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: "5px",
+                                              }}
+                                            >
+                                              <AlertCircle size={12} />
+                                              Nota: {tarea.nota_maxima} | {tarea.categoria_nombre ? (
+                                                <span style={{ fontWeight: '600' }}>Cat: {tarea.categoria_nombre} ({tarea.categoria_ponderacion} pts)</span>
+                                              ) : (
+                                                <>Peso: {tarea.ponderacion}pts</>
+                                              )}
+                                            </span>
+                                          </div>
+                                        </div>
+
+                                        {/* Botones de acción */}
+                                        <div
+                                          style={{
+                                            display: "flex",
+                                            gap: "6px",
+                                            marginTop: isMobile ? "0" : "6px",
+                                            flexWrap: "wrap",
+                                            alignItems: "center",
+                                            width: isMobile ? "100%" : "auto",
+                                            justifyContent: isMobile ? "flex-start" : "flex-end"
+                                          }}
+                                        >
+                                          {/* Botón Ver Entregas */}
+                                          {tarea.total_entregas > 0 && (
+                                            <button
+                                              onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                const pesoReal = tarea.categoria_nombre && tarea.categoria_ponderacion
+                                                  ? (parseFloat(tarea.categoria_ponderacion.toString()) / tareas.length)
+                                                  : tarea.ponderacion;
+
+                                                setTareaSeleccionada({
+                                                  id: tarea.id_tarea,
+                                                  nombre: tarea.titulo,
+                                                  nota_maxima: tarea.nota_maxima,
+                                                  ponderacion: pesoReal,
+                                                });
+                                                setShowModalEntregas(true);
+                                              }}
+                                              style={{
+                                                background:
+                                                  "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+                                                border: "none",
+                                                borderRadius: "8px",
+                                                padding: "6px 10px",
+                                                color: "#fff",
+                                                cursor: "pointer",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: "6px",
+                                                fontWeight: "700",
+                                                fontSize: "0.8rem",
+                                                boxShadow:
+                                                  "0 2px 6px rgba(59, 130, 246, 0.25)",
+                                                transition: "all 0.2s ease",
+                                              }}
+                                              onMouseEnter={(e) => {
+                                                e.currentTarget.style.transform =
+                                                  "translateY(-1px)";
+                                                e.currentTarget.style.boxShadow =
+                                                  "0 4px 10px rgba(59, 130, 246, 0.3)";
+                                              }}
+                                              onMouseLeave={(e) => {
+                                                e.currentTarget.style.transform =
+                                                  "translateY(0)";
+                                                e.currentTarget.style.boxShadow =
+                                                  "0 2px 6px rgba(59, 130, 246, 0.25)";
+                                              }}
+                                            >
+                                              <FileText size={13} />
+                                              Ver Entregas ({tarea.total_entregas})
+                                            </button>
+                                          )}
+
+                                          {/* Botón Editar (icono) */}
+                                          <button
+                                            onClick={(e) => {
+                                              e.preventDefault();
+                                              e.stopPropagation();
+                                              handleEditarTarea(tarea);
+                                            }}
+                                            title="Editar tarea"
+                                            style={{
+                                              background: darkMode
+                                                ? "rgba(245, 158, 11, 0.1)"
+                                                : "rgba(245, 158, 11, 0.08)",
+                                              border: `1px solid ${darkMode ? "rgba(245, 158, 11, 0.3)" : "rgba(245, 158, 11, 0.2)"}`,
+                                              borderRadius: "8px",
+                                              padding: "8px",
+                                              color: "#f59e0b",
+                                              cursor: "pointer",
+                                              display: "flex",
+                                              alignItems: "center",
+                                              justifyContent: "center",
+                                              transition: "all 0.2s ease",
+                                            }}
+                                            onMouseEnter={(e) => {
+                                              e.currentTarget.style.background =
+                                                "rgba(245, 158, 11, 0.2)";
+                                              e.currentTarget.style.transform =
+                                                "scale(1.1)";
+                                            }}
+                                            onMouseLeave={(e) => {
+                                              e.currentTarget.style.background = darkMode
+                                                ? "rgba(245, 158, 11, 0.1)"
+                                                : "rgba(245, 158, 11, 0.08)";
+                                              e.currentTarget.style.transform =
+                                                "scale(1)";
+                                            }}
+                                          >
+                                            <Edit size={16} />
+                                          </button>
+
+                                          {/* Botón Eliminar (icono) */}
+                                          <button
+                                            onClick={(e) => {
+                                              e.preventDefault();
+                                              e.stopPropagation();
+                                              setTareaParaEliminar(tarea);
+                                              setShowModalConfirmEliminarTarea(true);
+                                            }}
+                                            title="Eliminar tarea"
+                                            style={{
+                                              background: darkMode
+                                                ? "rgba(239, 68, 68, 0.1)"
+                                                : "rgba(239, 68, 68, 0.08)",
+                                              border: `1px solid ${darkMode ? "rgba(239, 68, 68, 0.3)" : "rgba(239, 68, 68, 0.2)"}`,
+                                              borderRadius: "8px",
+                                              padding: "8px",
+                                              color: "#ef4444",
+                                              cursor: "pointer",
+                                              display: "flex",
+                                              alignItems: "center",
+                                              justifyContent: "center",
+                                              transition: "all 0.2s ease",
+                                            }}
+                                            onMouseEnter={(e) => {
+                                              e.currentTarget.style.background =
+                                                "rgba(239, 68, 68, 0.2)";
+                                              e.currentTarget.style.transform =
+                                                "scale(1.1)";
+                                            }}
+                                            onMouseLeave={(e) => {
+                                              e.currentTarget.style.background = darkMode
+                                                ? "rgba(239, 68, 68, 0.1)"
+                                                : "rgba(239, 68, 68, 0.08)";
+                                              e.currentTarget.style.transform =
+                                                "scale(1)";
+                                            }}
+                                          >
+                                            <Trash2 size={16} />
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
                                 </div>
                               </div>
-
-                              {/* Botones de acción */}
-                              <div
-                                style={{
-                                  display: "flex",
-                                  gap: "6px",
-                                  marginTop: isMobile ? "0" : "6px",
-                                  flexWrap: "wrap",
-                                  alignItems: "center",
-                                  width: isMobile ? "100%" : "auto",
-                                  justifyContent: isMobile ? "flex-start" : "flex-end"
-                                }}
-                              >
-                                {/* Botón Ver Entregas */}
-                                {tarea.total_entregas > 0 && (
-                                  <button
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      setTareaSeleccionada({
-                                        id: tarea.id_tarea,
-                                        nombre: tarea.titulo,
-                                        nota_maxima: tarea.nota_maxima,
-                                        ponderacion: tarea.ponderacion,
-                                      });
-                                      setShowModalEntregas(true);
-                                    }}
-                                    style={{
-                                      background:
-                                        "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
-                                      border: "none",
-                                      borderRadius: "8px",
-                                      padding: "6px 10px",
-                                      color: "#fff",
-                                      cursor: "pointer",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: "6px",
-                                      fontWeight: "700",
-                                      fontSize: "0.8rem",
-                                      boxShadow:
-                                        "0 2px 6px rgba(59, 130, 246, 0.25)",
-                                      transition: "all 0.2s ease",
-                                    }}
-                                    onMouseEnter={(e) => {
-                                      e.currentTarget.style.transform =
-                                        "translateY(-1px)";
-                                      e.currentTarget.style.boxShadow =
-                                        "0 4px 10px rgba(59, 130, 246, 0.3)";
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      e.currentTarget.style.transform =
-                                        "translateY(0)";
-                                      e.currentTarget.style.boxShadow =
-                                        "0 2px 6px rgba(59, 130, 246, 0.25)";
-                                    }}
-                                  >
-                                    <FileText size={13} />
-                                    Ver Entregas ({tarea.total_entregas})
-                                  </button>
-                                )}
-
-                                {/* Botón Editar (icono) */}
-                                <button
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handleEditarTarea(tarea);
-                                  }}
-                                  title="Editar tarea"
-                                  style={{
-                                    background: darkMode
-                                      ? "rgba(245, 158, 11, 0.1)"
-                                      : "rgba(245, 158, 11, 0.08)",
-                                    border: `1px solid ${darkMode ? "rgba(245, 158, 11, 0.3)" : "rgba(245, 158, 11, 0.2)"}`,
-                                    borderRadius: "8px",
-                                    padding: "8px",
-                                    color: "#f59e0b",
-                                    cursor: "pointer",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    transition: "all 0.2s ease",
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.background =
-                                      "rgba(245, 158, 11, 0.2)";
-                                    e.currentTarget.style.transform =
-                                      "scale(1.1)";
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.background = darkMode
-                                      ? "rgba(245, 158, 11, 0.1)"
-                                      : "rgba(245, 158, 11, 0.08)";
-                                    e.currentTarget.style.transform =
-                                      "scale(1)";
-                                  }}
-                                >
-                                  <Edit size={16} />
-                                </button>
-
-                                {/* Botón Eliminar (icono) */}
-                                <button
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    setTareaParaEliminar(tarea);
-                                    setShowModalConfirmEliminarTarea(true);
-                                  }}
-                                  title="Eliminar tarea"
-                                  style={{
-                                    background: darkMode
-                                      ? "rgba(239, 68, 68, 0.1)"
-                                      : "rgba(239, 68, 68, 0.08)",
-                                    border: `1px solid ${darkMode ? "rgba(239, 68, 68, 0.3)" : "rgba(239, 68, 68, 0.2)"}`,
-                                    borderRadius: "8px",
-                                    padding: "8px",
-                                    color: "#ef4444",
-                                    cursor: "pointer",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    transition: "all 0.2s ease",
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.background =
-                                      "rgba(239, 68, 68, 0.2)";
-                                    e.currentTarget.style.transform =
-                                      "scale(1.1)";
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.background = darkMode
-                                      ? "rgba(239, 68, 68, 0.1)"
-                                      : "rgba(239, 68, 68, 0.08)";
-                                    e.currentTarget.style.transform =
-                                      "scale(1)";
-                                  }}
-                                >
-                                  <Trash2 size={16} />
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
+                            );
+                          });
+                        })()}
                       </div>
                     )}
                   </div>
@@ -1573,9 +1698,14 @@ const DetalleCursoDocente: React.FC<DetalleCursoDocenteProps> = ({
         <DocenteThemeWrapper darkMode={darkMode}>
           <ModalModulo
             isOpen={showModalModulo}
-            onClose={() => setShowModalModulo(false)}
+            onClose={() => {
+              setShowModalModulo(false);
+              setModuloEditar(null);
+            }}
             onSuccess={fetchModulos}
             id_curso={id_curso || ""}
+            moduloEditar={moduloEditar}
+            modulosExistentes={modulos.map(m => m.nombre)}
             darkMode={darkMode}
           />
 
