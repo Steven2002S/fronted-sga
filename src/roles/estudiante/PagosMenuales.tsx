@@ -763,7 +763,6 @@ const PagosMenuales: React.FC<PagosMenualesProps> = ({ darkMode = false }) => {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5em' }}>
             {cursosConPagos
-              .filter(curso => curso.curso_nombre.toString() !== "0" && curso.curso_nombre.toString().trim() !== "")
               .map((curso) => {
                 const fechaInicioCobro = curso.fecha_inicio_cobro ? new Date(curso.fecha_inicio_cobro) : null;
                 const promocionTerminada = Boolean(fechaInicioCobro && fechaInicioCobro.getTime() <= Date.now());
@@ -1142,255 +1141,262 @@ const PagosMenuales: React.FC<PagosMenualesProps> = ({ darkMode = false }) => {
                     {renderDetalleCuotas(curso)}
                   </div>
                 );
-              })}
+              })
+            }
           </div>
         )}
       </div>
 
-      {cursosAlDia.length > 0 && (
-        <div style={{ marginTop: '1.5em' }}>
-          <h2 style={{ fontSize: isMobile ? '0.95rem' : '1.05rem', fontWeight: '700', marginBottom: '0.25em', color: darkMode ? '#fff' : '#1f2937' }}>
-            Cursos al día
-          </h2>
-          <p style={{ fontSize: '0.82rem', color: darkMode ? 'rgba(255,255,255,0.7)' : '#6b7280', marginBottom: '0.75em' }}>
-            Estos cursos ya no tienen cuotas pendientes. Puedes consultar su historial de pagos cuando lo necesites. Si el equipo de administración detecta cualquier inconsistencia visual en las evidencias, divergencias en el número de comprobante o datos que no coincidan, el pago se rechazará de inmediato y el curso reaparecerá en la sección de pagos pendientes para que cargues la cuota nuevamente.
-          </p>
+      {
+        cursosAlDia.length > 0 && (
+          <div style={{ marginTop: '1.5em' }}>
+            <h2 style={{ fontSize: isMobile ? '0.95rem' : '1.05rem', fontWeight: '700', marginBottom: '0.25em', color: darkMode ? '#fff' : '#1f2937' }}>
+              Cursos al día
+            </h2>
+            <p style={{ fontSize: '0.82rem', color: darkMode ? 'rgba(255,255,255,0.7)' : '#6b7280', marginBottom: '0.75em' }}>
+              Estos cursos ya no tienen cuotas pendientes. Puedes consultar su historial de pagos cuando lo necesites. Si el equipo de administración detecta cualquier inconsistencia visual en las evidencias, divergencias en el número de comprobante o datos que no coincidan, el pago se rechazará de inmediato y el curso reaparecerá en la sección de pagos pendientes para que cargues la cuota nuevamente.
+            </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5em' }}>
-            {cursosAlDia.map((curso) => (
-              <div
-                key={`al - dia - ${curso.id_matricula} `}
-                style={{
-                  backgroundColor: darkMode ? 'rgba(16, 185, 129, 0.08)' : '#ecfdf5',
-                  border: `1px solid ${darkMode ? 'rgba(16, 185, 129, 0.4)' : '#a7f3d0'} `,
-                  borderRadius: '1rem',
-                  padding: '1.1em 1.2em',
-                  boxShadow: darkMode
-                    ? '0 4px 20px rgba(13, 148, 136, 0.15)'
-                    : '0 4px 12px rgba(16, 185, 129, 0.15)'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75em', flexWrap: 'wrap' }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5em', flexWrap: 'wrap' }}>
-                      <h3 style={{ fontSize: '0.95rem', fontWeight: '800', margin: 0, color: darkMode ? '#d1fae5' : '#065f46' }}>
-                        {curso.curso_nombre.toString().replace(/\s*0\s*$/, '')}
-                      </h3>
-                      <span style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '0.3em',
-                        padding: '0.25em 0.6em',
-                        borderRadius: '999px',
-                        background: 'rgba(16, 185, 129, 0.15)',
-                        color: '#059669',
-                        fontSize: '0.72rem',
-                        fontWeight: '700'
-                      }}>
-                        <CheckCircle size={14} strokeWidth={2.5} color="#059669" />
-                        Pagos completados
-                      </span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5em' }}>
+              {cursosAlDia.map((curso) => (
+                <div
+                  key={`al - dia - ${curso.id_matricula} `}
+                  style={{
+                    backgroundColor: darkMode ? 'rgba(16, 185, 129, 0.08)' : '#ecfdf5',
+                    border: `1px solid ${darkMode ? 'rgba(16, 185, 129, 0.4)' : '#a7f3d0'} `,
+                    borderRadius: '1rem',
+                    padding: '1.1em 1.2em',
+                    boxShadow: darkMode
+                      ? '0 4px 20px rgba(13, 148, 136, 0.15)'
+                      : '0 4px 12px rgba(16, 185, 129, 0.15)'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75em', flexWrap: 'wrap' }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5em', flexWrap: 'wrap' }}>
+                        <h3 style={{ fontSize: '0.95rem', fontWeight: '800', margin: 0, color: darkMode ? '#d1fae5' : '#065f46' }}>
+                          {curso.curso_nombre.toString().replace(/\s*0\s*$/, '')}
+                        </h3>
+                        <span style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.3em',
+                          padding: '0.25em 0.6em',
+                          borderRadius: '999px',
+                          background: 'rgba(16, 185, 129, 0.15)',
+                          color: '#059669',
+                          fontSize: '0.72rem',
+                          fontWeight: '700'
+                        }}>
+                          <CheckCircle size={14} strokeWidth={2.5} color="#059669" />
+                          Pagos completados
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: darkMode ? 'rgba(209, 250, 229, 0.85)' : '#047857', marginTop: '0.2em' }}>
+                        {curso.tipo_curso_nombre}
+                        {curso.codigo_matricula && curso.codigo_matricula.toString() !== '0' && (
+                          <>
+                            {' '}• {curso.codigo_matricula.toString().replace(/\s*0\s*$/, '')}
+                          </>
+                        )}
+                      </div>
                     </div>
-                    <div style={{ fontSize: '0.78rem', color: darkMode ? 'rgba(209, 250, 229, 0.85)' : '#047857', marginTop: '0.2em' }}>
-                      {curso.tipo_curso_nombre}
-                      {curso.codigo_matricula && curso.codigo_matricula.toString() !== '0' && (
+
+                    <button
+                      onClick={() => handleToggleCuotas(curso)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.4em',
+                        padding: '0.45em 0.9em',
+                        background: cursoExpandido === curso.id_matricula
+                          ? 'linear-gradient(135deg, #047857, #065f46)'
+                          : 'linear-gradient(135deg, #34d399, #10b981)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '0.625em',
+                        fontSize: '0.78rem',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'
+                      }}
+                    >
+                      {cursoExpandido === curso.id_matricula ? (
                         <>
-                          {' '}• {curso.codigo_matricula.toString().replace(/\s*0\s*$/, '')}
+                          <XCircle size={16} strokeWidth={2.5} color="#fff" />
+                          Ocultar historial
+                        </>
+                      ) : (
+                        <>
+                          <Eye size={16} strokeWidth={2.5} color="#fff" />
+                          Ver historial
                         </>
                       )}
+                    </button>
+                  </div>
+
+                  <div className="responsive-grid-auto" style={{ gap: '0.5em', marginTop: '0.75em' }}>
+                    <div style={{
+                      padding: '0.6em',
+                      background: darkMode ? 'rgba(16, 185, 129, 0.12)' : '#d1fae5',
+                      borderRadius: '0.65em',
+                      border: `1px solid ${darkMode ? 'rgba(16,185,129,0.3)' : '#a7f3d0'} `
+                    }}>
+                      <div style={{ fontSize: '0.7rem', color: '#059669', marginBottom: '0.3em', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.25em' }}>
+                        <CheckCircle size={12} strokeWidth={2.5} color="#059669" />
+                        Cuotas pagadas
+                      </div>
+                      <div style={{ fontSize: '0.95rem', fontWeight: '800', color: '#059669' }}>
+                        {curso.total_cuotas}
+                      </div>
+                    </div>
+
+                    <div style={{
+                      padding: '0.6em',
+                      background: darkMode ? 'rgba(255,255,255,0.05)' : '#fff',
+                      borderRadius: '0.65em',
+                      border: `1px solid ${darkMode ? 'rgba(255,255,255,0.1)' : '#e5e7eb'} `
+                    }}>
+                      <div style={{ fontSize: '0.7rem', color: darkMode ? 'rgba(209,250,229,0.9)' : '#047857', marginBottom: '0.3em', fontWeight: '600' }}>
+                        Monto total pagado
+                      </div>
+                      <div style={{ fontSize: '0.95rem', fontWeight: '800', color: darkMode ? '#d1fae5' : '#047857' }}>
+                        {formatearMonto(obtenerMontoTotalPagado(curso))}
+                      </div>
+                    </div>
+
+                    <div style={{
+                      padding: '0.6em',
+                      background: darkMode ? 'rgba(5, 150, 105, 0.18)' : 'rgba(16, 185, 129, 0.12)',
+                      borderRadius: '0.65em',
+                      border: `1px solid ${darkMode ? 'rgba(5,150,105,0.35)' : 'rgba(16,185,129,0.3)'} `
+                    }}>
+                      <div style={{ fontSize: '0.7rem', color: darkMode ? '#a7f3d0' : '#065f46', marginBottom: '0.3em', fontWeight: '600' }}>
+                        Estado general
+                      </div>
+                      <div style={{ fontSize: '0.95rem', fontWeight: '800', color: darkMode ? '#a7f3d0' : '#065f46' }}>
+                        Al día
+                      </div>
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => handleToggleCuotas(curso)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.4em',
-                      padding: '0.45em 0.9em',
-                      background: cursoExpandido === curso.id_matricula
-                        ? 'linear-gradient(135deg, #047857, #065f46)'
-                        : 'linear-gradient(135deg, #34d399, #10b981)',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '0.625em',
-                      fontSize: '0.78rem',
-                      fontWeight: '700',
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'
-                    }}
-                  >
-                    {cursoExpandido === curso.id_matricula ? (
-                      <>
-                        <XCircle size={16} strokeWidth={2.5} color="#fff" />
-                        Ocultar historial
-                      </>
-                    ) : (
-                      <>
-                        <Eye size={16} strokeWidth={2.5} color="#fff" />
-                        Ver historial
-                      </>
-                    )}
-                  </button>
+                  {renderDetalleCuotas(curso)}
                 </div>
-
-                <div className="responsive-grid-auto" style={{ gap: '0.5em', marginTop: '0.75em' }}>
-                  <div style={{
-                    padding: '0.6em',
-                    background: darkMode ? 'rgba(16, 185, 129, 0.12)' : '#d1fae5',
-                    borderRadius: '0.65em',
-                    border: `1px solid ${darkMode ? 'rgba(16,185,129,0.3)' : '#a7f3d0'} `
-                  }}>
-                    <div style={{ fontSize: '0.7rem', color: '#059669', marginBottom: '0.3em', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.25em' }}>
-                      <CheckCircle size={12} strokeWidth={2.5} color="#059669" />
-                      Cuotas pagadas
-                    </div>
-                    <div style={{ fontSize: '0.95rem', fontWeight: '800', color: '#059669' }}>
-                      {curso.total_cuotas}
-                    </div>
-                  </div>
-
-                  <div style={{
-                    padding: '0.6em',
-                    background: darkMode ? 'rgba(255,255,255,0.05)' : '#fff',
-                    borderRadius: '0.65em',
-                    border: `1px solid ${darkMode ? 'rgba(255,255,255,0.1)' : '#e5e7eb'} `
-                  }}>
-                    <div style={{ fontSize: '0.7rem', color: darkMode ? 'rgba(209,250,229,0.9)' : '#047857', marginBottom: '0.3em', fontWeight: '600' }}>
-                      Monto total pagado
-                    </div>
-                    <div style={{ fontSize: '0.95rem', fontWeight: '800', color: darkMode ? '#d1fae5' : '#047857' }}>
-                      {formatearMonto(obtenerMontoTotalPagado(curso))}
-                    </div>
-                  </div>
-
-                  <div style={{
-                    padding: '0.6em',
-                    background: darkMode ? 'rgba(5, 150, 105, 0.18)' : 'rgba(16, 185, 129, 0.12)',
-                    borderRadius: '0.65em',
-                    border: `1px solid ${darkMode ? 'rgba(5,150,105,0.35)' : 'rgba(16,185,129,0.3)'} `
-                  }}>
-                    <div style={{ fontSize: '0.7rem', color: darkMode ? '#a7f3d0' : '#065f46', marginBottom: '0.3em', fontWeight: '600' }}>
-                      Estado general
-                    </div>
-                    <div style={{ fontSize: '0.95rem', fontWeight: '800', color: darkMode ? '#a7f3d0' : '#065f46' }}>
-                      Al día
-                    </div>
-                  </div>
-                </div>
-
-                {renderDetalleCuotas(curso)}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
-      {cursoConfirmacion && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0,0,0,0.55)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-            padding: '1rem'
-          }}
-        >
+      {
+        cursoConfirmacion && (
           <div
+            role="dialog"
+            aria-modal="true"
             style={{
-              width: '100%',
-              maxWidth: '420px',
-              background: darkMode ? 'rgba(17,24,39,0.95)' : '#ffffff',
-              borderRadius: '1rem',
-              padding: '1.25rem',
-              boxShadow: '0 20px 45px rgba(0,0,0,0.35)',
-              border: `1px solid ${darkMode ? 'rgba(255,255,255,0.1)' : '#e5e7eb'} `
+              position: 'fixed',
+              inset: 0,
+              backgroundColor: 'rgba(0,0,0,0.55)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 9999,
+              padding: '1rem'
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.75rem' }}>
-              <XCircle size={24} strokeWidth={2.5} color={darkMode ? '#fca5a5' : '#dc2626'} />
-              <div>
-                <h3 style={{ margin: 0, fontSize: '1rem', color: darkMode ? '#fff' : '#111827' }}>Confirmar decisión</h3>
-                <p style={{ margin: 0, fontSize: '0.82rem', color: darkMode ? 'rgba(255,255,255,0.7)' : '#6b7280' }}>
-                  {cursoConfirmacion.curso_nombre}
-                </p>
+            <div
+              style={{
+                width: '100%',
+                maxWidth: '420px',
+                background: darkMode ? 'rgba(17,24,39,0.95)' : '#ffffff',
+                borderRadius: '1rem',
+                padding: '1.25rem',
+                boxShadow: '0 20px 45px rgba(0,0,0,0.35)',
+                border: `1px solid ${darkMode ? 'rgba(255,255,255,0.1)' : '#e5e7eb'} `
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.75rem' }}>
+                <XCircle size={24} strokeWidth={2.5} color={darkMode ? '#fca5a5' : '#dc2626'} />
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1rem', color: darkMode ? '#fff' : '#111827' }}>Confirmar decisión</h3>
+                  <p style={{ margin: 0, fontSize: '0.82rem', color: darkMode ? 'rgba(255,255,255,0.7)' : '#6b7280' }}>
+                    {cursoConfirmacion.curso_nombre}
+                  </p>
+                </div>
+              </div>
+              <p style={{ fontSize: '0.88rem', lineHeight: 1.6, color: darkMode ? 'rgba(255,255,255,0.85)' : '#374151' }}>
+                ¿Seguro que no deseas continuar con este curso después del período gratuito? Esta acción avisará al equipo académico para detener el acceso cuando termine el beneficio.
+              </p>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '0.75rem',
+                marginTop: '1.25rem'
+              }}>
+                <button
+                  type="button"
+                  onClick={cerrarModalConfirmacion}
+                  style={{
+                    padding: '0.55rem 1.2rem',
+                    borderRadius: '0.65rem',
+                    border: `1px solid ${darkMode ? 'rgba(255,255,255,0.15)' : '#d1d5db'} `,
+                    background: 'transparent',
+                    color: darkMode ? '#fff' : '#1f2937',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmarRechazoPromocion}
+                  disabled={decisionLoading === cursoConfirmacion.id_matricula}
+                  style={{
+                    padding: '0.55rem 1.25rem',
+                    borderRadius: '0.65rem',
+                    border: 'none',
+                    background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                    color: '#fff',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    cursor: decisionLoading === cursoConfirmacion.id_matricula ? 'not-allowed' : 'pointer',
+                    opacity: decisionLoading === cursoConfirmacion.id_matricula ? 0.6 : 1
+                  }}
+                >
+                  <XCircle size={18} strokeWidth={2.5} color="#fff" />
+                  {decisionLoading === cursoConfirmacion.id_matricula ? 'Enviando...' : 'Sí, no continuaré'}
+                </button>
               </div>
             </div>
-            <p style={{ fontSize: '0.88rem', lineHeight: 1.6, color: darkMode ? 'rgba(255,255,255,0.85)' : '#374151' }}>
-              ¿Seguro que no deseas continuar con este curso después del período gratuito? Esta acción avisará al equipo académico para detener el acceso cuando termine el beneficio.
-            </p>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              gap: '0.75rem',
-              marginTop: '1.25rem'
-            }}>
-              <button
-                type="button"
-                onClick={cerrarModalConfirmacion}
-                style={{
-                  padding: '0.55rem 1.2rem',
-                  borderRadius: '0.65rem',
-                  border: `1px solid ${darkMode ? 'rgba(255,255,255,0.15)' : '#d1d5db'} `,
-                  background: 'transparent',
-                  color: darkMode ? '#fff' : '#1f2937',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={confirmarRechazoPromocion}
-                disabled={decisionLoading === cursoConfirmacion.id_matricula}
-                style={{
-                  padding: '0.55rem 1.25rem',
-                  borderRadius: '0.65rem',
-                  border: 'none',
-                  background: 'linear-gradient(135deg, #ef4444, #dc2626)',
-                  color: '#fff',
-                  fontWeight: 700,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  cursor: decisionLoading === cursoConfirmacion.id_matricula ? 'not-allowed' : 'pointer',
-                  opacity: decisionLoading === cursoConfirmacion.id_matricula ? 0.6 : 1
-                }}
-              >
-                <XCircle size={18} strokeWidth={2.5} color="#fff" />
-                {decisionLoading === cursoConfirmacion.id_matricula ? 'Enviando...' : 'Sí, no continuaré'}
-              </button>
-            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Modal de pago */}
-      {showPagoModal && selectedCuota && (
-        <ModalPagoMensualidad
-          cuota={selectedCuota}
-          darkMode={darkMode}
-          onClose={() => {
-            setShowPagoModal(false);
-            setSelectedCuota(null);
-          }}
-          onSuccess={() => {
-            // Recargar datos después del pago exitoso
-            loadData();
-            // Recargar cuotas del curso expandido si existe
-            if (cursoExpandido) {
-              loadCuotasMatricula(cursoExpandido);
-            }
-          }}
-        />
-      )}
-    </div>
+      {
+        showPagoModal && selectedCuota && (
+          <ModalPagoMensualidad
+            cuota={selectedCuota}
+            darkMode={darkMode}
+            onClose={() => {
+              setShowPagoModal(false);
+              setSelectedCuota(null);
+            }}
+            onSuccess={() => {
+              // Recargar datos después del pago exitoso
+              loadData();
+              // Recargar cuotas del curso expandido si existe
+              if (cursoExpandido) {
+                loadCuotasMatricula(cursoExpandido);
+              }
+            }}
+          />
+        )
+      }
+    </div >
   );
 };
 
