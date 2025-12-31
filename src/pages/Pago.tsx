@@ -340,6 +340,20 @@ const Pago: React.FC = () => {
   const [isRefreshingCupos, setIsRefreshingCupos] = useState(false);
   const lastFetchRef = useRef<number>(0);
   const [lastCuposCount, setLastCuposCount] = useState<number>(0);
+
+  // Función para calcular la edad exacta
+  const calcularEdad = (fecha: string): number => {
+    if (!fecha) return 0;
+    const hoy = new Date();
+    const cumpleanos = new Date(fecha);
+    let edad = hoy.getFullYear() - cumpleanos.getFullYear();
+    const m = hoy.getMonth() - cumpleanos.getMonth();
+    if (m < 0 || (m === 0 && hoy.getDate() < cumpleanos.getDate())) {
+      edad--;
+    }
+    return edad;
+  };
+
   const [formData, setFormData] = useState<FormData>({
     nombre: '',
     apellido: '',
@@ -3403,6 +3417,51 @@ Realiza una nueva transferencia o verifica si ya tienes una solicitud previa reg
                                 }}
                               />
                             </div>
+
+                            {/* MENSAJE PARA MENORES DE 16 AÑOS */}
+                            {formData.fechaNacimiento && calcularEdad(formData.fechaNacimiento) > 0 && calcularEdad(formData.fechaNacimiento) < 16 && (
+                              <div style={{
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                gap: 12,
+                                marginTop: -10,
+                                marginBottom: 20,
+                                padding: '16px',
+                                background: theme === 'dark'
+                                  ? 'linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(245, 158, 11, 0.08))'
+                                  : 'linear-gradient(135deg, rgba(254, 243, 199, 0.95), rgba(254, 235, 203, 0.95))',
+                                border: `1px solid ${theme === 'dark' ? 'rgba(251, 191, 36, 0.3)' : 'rgba(245, 158, 11, 0.4)'}`,
+                                borderRadius: '16px',
+                                animation: 'slideInUp 0.4s ease-out',
+                                backdropFilter: 'blur(10px)',
+                                boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
+                              }}>
+                                <Info size={24} color="#fbbf24" style={{ flexShrink: 0, marginTop: 2 }} />
+                                <div style={{ flex: 1 }}>
+                                  <p style={{
+                                    color: theme === 'dark' ? '#fde68a' : '#92400e',
+                                    fontSize: '0.95rem',
+                                    fontWeight: '700',
+                                    marginBottom: '4px',
+                                    lineHeight: '1.4'
+                                  }}>
+                                    Aviso Importante para Estudiantes Menores
+                                  </p>
+                                  <p style={{
+                                    color: theme === 'dark' ? 'rgba(255, 255, 255, 0.85)' : '#451a03',
+                                    fontSize: '0.9rem',
+                                    lineHeight: '1.5',
+                                    margin: 0
+                                  }}>
+                                    Estimado estudiante, al ser menor de 16 años, le solicitamos gentilmente acercarse a la <strong>Escuela Jessica Velez</strong> en compañía de su representante legal para evaluar su situación.
+                                    <br />
+                                    <span style={{ display: 'inline-block', marginTop: '6px', fontWeight: '500', opacity: 0.9 }}>
+                                      Puede continuar con su inscripción, pero requerimos esta validación presencial.
+                                    </span>
+                                  </p>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
 
@@ -3717,9 +3776,9 @@ Realiza una nueva transferencia o verifica si ya tienes una solicitud previa reg
                                         const montoSugerido = mesesPagados * MONTO_BASE;
                                         const montoSiguiente = (mesesPagados + 1) * MONTO_BASE;
 
-                                        toast.warning(
+                                        toast(
                                           `Solo múltiplos de $${MONTO_BASE}. Puedes pagar: $${montoSugerido} o $${montoSiguiente}`,
-                                          { duration: 3000 }
+                                          { duration: 3000, icon: '⚠️' }
                                         );
                                       }
                                     } else {
